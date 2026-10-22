@@ -140,6 +140,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .shot .cap{font-size:11px;color:var(--muted);padding:6px 8px}
 .lightbox{position:fixed;inset:0;background:rgba(5,12,10,.82);display:grid;place-items:center;z-index:80;padding:20px;cursor:zoom-out}
 .lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 60px -20px #000}
+
+/* flags, restyled for readability */
+.fl{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);border-left-width:4px}
+.fl+.fl{margin-top:9px}
+.fl-high{border-left-color:var(--bad)}.fl-med{border-left-color:var(--warn)}.fl-low{border-left-color:var(--untracked)}
+.fl-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px}
+.fl-high .fl-ic,.fl-high .fl-badge{background:#f9e0db;color:var(--bad)}
+.fl-med .fl-ic,.fl-med .fl-badge{background:#f6e7cc;color:var(--warn)}
+.fl-low .fl-ic,.fl-low .fl-badge{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+@media(prefers-color-scheme:dark){.fl-high .fl-ic,.fl-high .fl-badge{background:#3a201b}.fl-med .fl-ic,.fl-med .fl-badge{background:#36301a}}
+.fl-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fl-badge{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:99px}
+.fl-title{font-size:14.5px;line-height:1.35;font-weight:700}
+.fl-detail{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+.fl-quote{white-space:pre-wrap;margin-top:9px;padding:9px 11px;border-left:3px solid var(--line);background:var(--surface);border-radius:6px;font-size:12.5px;max-height:130px;overflow:auto}
+.fl-qlabel{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.fl-ok{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -1360,9 +1377,11 @@ window.AT_CONFIG = {
     var docCard=m.segments.length?'<div class="card"><div class="sec-head"><h2>The document</h2><span class="hint">color shows how each part was produced</span></div>'+documentHtml(m)+'</div>':'';
     var shotsCard=m.screenshots.length?'<div class="card"><div class="sec-head"><h2>Screenshots</h2><span class="hint">random captures while writing</span></div>'+screenshotsHtml(m)+'</div>':'';
 
+    var SEV={high:["High","fl-high","!"],medium:["Medium","fl-med","!"],low:["Minor","fl-low","i"]};
     var flags=(a.flags||[]).slice().sort(function(x,y){var o={high:0,medium:1,low:2};return o[x.severity]-o[y.severity];}).map(function(f){
-      return '<div class="flag '+f.severity+'"><div class="stripe"></div><div><b>'+esc(f.title)+'</b>'+(f.detail?'<div class="small muted">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="flagquote">'+esc(f.snippet)+'</div>':'')+'</div></div>';
-    }).join("")||'<p class="muted">No flags.</p>';
+      var sv=SEV[f.severity]||SEV.low;
+      return '<div class="fl '+sv[1]+'"><div class="fl-ic">'+sv[2]+'</div><div class="fl-body"><div class="fl-top"><span class="fl-badge">'+sv[0]+'</span><b class="fl-title">'+esc(f.title)+'</b></div>'+(f.detail?'<div class="fl-detail">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="fl-quote"><span class="fl-qlabel">From the document</span>'+esc(f.snippet)+'</div>':'')+'</div></div>';
+    }).join("")||'<div class="fl-ok">Nothing stood out in how this document was written.</div>';
     var comps=(a.competitors||[]).map(function(cp){
       var rows=(cp.matches||[]).map(function(mm){return '<tr><td class="small">'+esc(mm.doc)+'</td><td class="small muted">'+esc(mm.comp)+'</td><td class="mono">'+mm.sim+'%</td></tr>';}).join("");
       return '<h3 style="margin-top:10px"><a href="'+esc(cp.url)+'" target="_blank" rel="noopener">'+esc(cp.title||cp.url)+'</a> '+(cp.error?'<span class="err small">'+esc(cp.error)+'</span>':'<span class="small muted">'+cp.containment+'% overall</span>')+'</h3>'+(rows?'<table><thead><tr><th>This doc</th><th>Competitor</th><th>Match</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="small muted">No close sentence matches.</p>');
