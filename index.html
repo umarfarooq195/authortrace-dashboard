@@ -37,19 +37,125 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font
 .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .statrow>div{background:var(--surface);padding:10px;display:grid;gap:2px}.statrow b{font-family:ui-monospace,monospace;font-size:18px}.statrow span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .back{cursor:pointer;color:var(--accent);font-size:13px;font-weight:600}
+
+/* ---------- premium polish ---------- */
+body{background:
+  radial-gradient(1200px 500px at 90% -10%, var(--accent-soft) 0%, transparent 60%),
+  var(--bg);background-attachment:fixed}
+.wrap{max-width:1120px}
+.card{box-shadow:0 1px 2px rgba(10,30,25,.05),0 18px 40px -30px rgba(10,30,25,.35)}
+.topbar h1{letter-spacing:-.02em}
+.brand{display:flex;align-items:center;gap:9px}
+.brand .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(140deg,var(--accent),var(--typed));display:inline-block;flex:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.btn{transition:transform .04s ease,box-shadow .15s ease}.btn:active{transform:translateY(1px)}
+.btn.primary{box-shadow:0 6px 16px -8px var(--accent)}
+
+/* hero / score */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--accent),var(--typed))}
+.ring{--p:0;--c:var(--accent);width:118px;height:118px;border-radius:50%;display:grid;place-items:center;flex:none;
+  background:radial-gradient(closest-side,var(--surface) 78%,transparent 79% 100%),conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0)}
+.ring .n{font-family:ui-monospace,monospace;font-weight:800;font-size:34px;line-height:1;color:var(--c)}
+.ring .l{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px}
+.verdict-line{font-size:17px;font-weight:650;line-height:1.4;margin:2px 0 4px}
+.reasons{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:5px;font-size:13.5px}
+.reasons li{display:flex;gap:8px;align-items:flex-start}
+.reasons .ic{flex:none;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;margin-top:1px}
+.reasons .good .ic{background:var(--accent-soft);color:var(--ok)}.reasons .bad .ic{background:#f9e0db;color:var(--bad)}.reasons .neutral .ic{background:var(--sunk);color:var(--muted)}
+@media(prefers-color-scheme:dark){.reasons .bad .ic{background:#3a201b}}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.tile{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:11px 12px;display:grid;gap:3px}
+.tile b{font-family:ui-monospace,monospace;font-size:20px;line-height:1.1;letter-spacing:-.01em}
+.tile span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.tile small{font-size:11px;color:var(--muted)}
+
+/* composition legend bar */
+.compbar{height:16px;border-radius:8px}
+.complegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px}
+.complegend b{font-family:ui-monospace,monospace}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.d-typed{background:var(--typed)}.d-paste{background:var(--paste)}.d-ai{background:var(--other)}.d-untracked{background:var(--untracked)}
+
+.sec-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sec-head .hint{font-size:12.5px;color:var(--muted);font-weight:400}
+
+/* timeline */
+.tlwrap{position:relative;height:96px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tl-sess{position:absolute;top:12px;height:20px;background:linear-gradient(180deg,var(--typed),color-mix(in srgb,var(--typed) 80%,#000));border-radius:5px;opacity:.9}
+.tl-ai{position:absolute;top:40px;height:18px;background:var(--other);opacity:.28;border-radius:4px;border:1px solid var(--other)}
+.tl-ai-lbl{position:absolute;top:40px;font-size:10px;color:var(--other);font-weight:700;padding-left:3px;white-space:nowrap;pointer-events:none}
+.tl-row-lbl{position:absolute;left:8px;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.tl-paste{position:absolute;top:66px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:2px solid var(--surface);cursor:default;z-index:3}
+.tl-paste.red{background:var(--paste)}.tl-paste.orange{background:var(--other)}
+.tl-shot{position:absolute;top:80px;width:11px;height:10px;border-radius:2px;background:var(--accent);transform:translateX(-50%);cursor:default;z-index:2;opacity:.85}
+.tl-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+.tl-empty{display:grid;place-items:center;height:100%;color:var(--muted);font-size:13px}
+
+/* correlations */
+.corr{display:grid;gap:10px}
+.corr-item{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--other);border-radius:9px;background:var(--sunk)}
+.corr-item .ai{flex:none;font-weight:800;color:var(--other);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.corr-item .big{font-weight:650}
+.corr-none{color:var(--muted);font-size:13.5px}
+
+/* sessions */
+.sess{display:grid;gap:8px}
+.sess-row{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--sunk)}
+.sess-row .idx{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:800;display:grid;place-items:center;font-size:13px}
+.sess-row .meta{font-size:12.5px;color:var(--muted)}
+.sess-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);min-width:90px;margin-top:5px;max-width:260px}
+
+/* sparkline */
+.spark{width:100%;height:120px;display:block}
+.spark-tip{fill:var(--muted);font-size:10px}
+
+/* document highlight view */
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;align-items:center}
+.legend .lg{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;border:1px solid var(--line);display:inline-block}
+.sw-typed{background:var(--surface)}.sw-untracked{background:color-mix(in srgb,var(--untracked) 30%,var(--surface))}
+.sw-paste{background:color-mix(in srgb,var(--paste) 26%,var(--surface))}.sw-ai{background:color-mix(in srgb,var(--other) 30%,var(--surface))}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.fbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:99px;padding:5px 13px;font-size:12.5px;font-weight:650;cursor:pointer}
+.fbtn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.atv{font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word;max-height:560px;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.seg{border-radius:3px;padding:1px 0;transition:opacity .12s ease}
+.seg-untracked{background:color-mix(in srgb,var(--untracked) 26%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--untracked) 30%,transparent)}
+.seg-paste{background:color-mix(in srgb,var(--paste) 24%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--paste) 32%,transparent)}
+.seg-paste-ai{background:color-mix(in srgb,var(--other) 30%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--other) 40%,transparent);cursor:help}
+.seg:hover{filter:brightness(1.06);outline:1px solid var(--accent)}
+.atv[data-flt] .seg{opacity:.18}
+.atv[data-flt="paste"] .seg-paste{opacity:1}
+.atv[data-flt="paste-ai"] .seg-paste-ai{opacity:1}
+.atv[data-flt="untracked"] .seg-untracked{opacity:1}
+
+/* screenshots */
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.shot{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--sunk);display:grid;grid-template-rows:1fr auto}
+.shot .ph{aspect-ratio:16/10;display:grid;place-items:center;color:var(--muted);font-size:12px;background:var(--sunk)}
+.shot img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;aspect-ratio:16/10}
+.shot .cap{font-size:11px;color:var(--muted);padding:6px 8px}
+.lightbox{position:fixed;inset:0;background:rgba(5,12,10,.82);display:grid;place-items:center;z-index:80;padding:20px;cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 60px -20px #000}
 </style>
 </head>
 <body>
 <div id="app"><div class="wrap"><p class="muted">Loading...</p></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script>// AuthorTrace Supabase connection settings (safe to share: anon key only)
+<script>
+// AuthorTrace Supabase connection settings (safe to share: anon key only)
 window.AT_CONFIG = {
   url: "https://uuidjyetejvdbvldcdzv.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1aWRqeWV0ZWp2ZGJ2bGRjZHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NDc4NzIsImV4cCI6MjEwODIyMzg3Mn0.pjfEEMc86fnY3yC_GmmLJj9y_7yehbMkhuU0DjORju4"
 };
+
 </script>
-<script>/* AuthorTrace analysis engine v1
+<script>
+/* AuthorTrace analysis engine v1
  * Works in the browser (window.ATEngine) and in Node (module.exports).
  * Inputs:
  *   rev  = owner export  { format:"authortrace.revisions", docId, title, users:{id:name}, ops:[[t,u,"i",idx,text]|[t,u,"d",si,ei]], changelog? , competitors:[{url,title,text}] }
@@ -814,6 +920,101 @@ window.AT_CONFIG = {
     return segs;
   };
 
+  /** Rich model for the dashboard report: enriched segments, timeline, sessions, speed, AI correlations */
+  E.reportModel = function (a) {
+    a = a || {};
+    var ev = a._ev || {}, ops = a._ops || [], comp = a.composition || {}, st = a.stats || {};
+    var aiDomains = E.DEFAULT_SETTINGS.aiDomains;
+    var offset = (st.offsetSec || 0) * 1000; // evidence clock - revision clock
+    var hasRev = !!a.hasRevisions;
+    function toLine(evT) { return hasRev ? evT - offset : evT; }   // evidence event -> revision timeline
+    function toEv(revT) { return hasRev ? revT + offset : revT; }  // revision time -> evidence clock
+
+    // ---- enriched, merged segments of the final document
+    var raw = E.segments(a), segs = [];
+    raw.forEach(function (s) {
+      var kind = s.cls, domain = null;
+      if (s.cls === "paste") {
+        var op = ops[s.opi];
+        var p = (op && op.paste !== undefined) ? ev.pastes[op.paste] : null;
+        if (p && p.source && p.source.domain) domain = p.source.domain;
+        var isAi = domain && domainMatches(domain, aiDomains);
+        if (!isAi && op) {
+          var opEv = op.t + offset;
+          var v = (ev.aiVisits || []).filter(function (vv) { return domainMatches(vv.domain, aiDomains) && vv.end >= opEv - 900000 && vv.start <= opEv + 30000; });
+          if (v.length) { isAi = true; domain = v[v.length - 1].domain; }
+        }
+        if (isAi) kind = "paste-ai";
+      }
+      var last = segs[segs.length - 1];
+      if (last && last.kind === kind && last.domain === domain) last.text += s.text;
+      else segs.push({ text: s.text, kind: kind, domain: domain, t: s.t });
+    });
+
+    // ---- pastes (evidence), ai-flagged, internal (doc-to-doc) dropped
+    var pastes = (ev.pastes || []).map(function (p) {
+      var domain = (p.source && p.source.domain) || null;
+      return { t: p.t, tl: toLine(p.t), len: p.len || 0, words: wordsIn(p.text || ""),
+        ai: !!(domain && domainMatches(domain, aiDomains)), internal: !!(p.source && p.source.internal), domain: domain,
+        preview: String(p.text || "").replace(/\s+/g, " ").trim().slice(0, 160) };
+    }).filter(function (p) { return !p.internal; });
+
+    // ---- AI site visits (evidence)
+    var aiVisits = (ev.aiVisits || []).filter(function (v) { return domainMatches(v.domain, aiDomains); })
+      .map(function (v) { return { domain: v.domain, start: v.start, end: v.end, sl: toLine(v.start), el: toLine(v.end), min: Math.max(1, Math.round((v.end - v.start) / 60000)) }; });
+
+    // ---- paste <-> AI visit correlations (the strongest signal)
+    var correlations = [];
+    pastes.forEach(function (p) {
+      if ((p.len || 0) < 40) return;
+      var near = aiVisits.filter(function (v) { return v.end >= p.t - 900000 && v.start <= p.t + 30000; });
+      if (near.length) {
+        var v = near[near.length - 1], gap = Math.round((p.t - v.end) / 1000);
+        correlations.push({ domain: v.domain, visitMin: v.min, words: p.words, len: p.len, gapSec: gap < 0 ? 0 : gap, t: p.tl, direct: false });
+      } else if (p.ai) {
+        correlations.push({ domain: p.domain, visitMin: null, words: p.words, len: p.len, gapSec: null, t: p.tl, direct: true });
+      }
+    });
+    correlations.sort(function (x, y) { return y.words - x.words; });
+
+    // ---- screenshots (evidence)
+    var shots = (ev.screenshots || []).map(function (sh) { return { t: sh.t, tl: toLine(sh.t), path: sh.path || null, dataUrl: sh.dataUrl || null }; });
+
+    // ---- sessions (revision clock)
+    var sessions = (a.sessions || []).map(function (s) {
+      return { start: s.start, end: s.end, durMin: Math.max(0, Math.round((s.end - s.start) / 60000)), added: s.added || 0, removed: s.removed || 0, words: Math.round((s.added || 0) / 5.7) };
+    });
+
+    // ---- timeline bounds
+    var lo = [], hi = [];
+    if (hasRev && st.firstT) { lo.push(st.firstT); hi.push(st.lastT); }
+    sessions.forEach(function (s) { lo.push(s.start); hi.push(s.end); });
+    pastes.forEach(function (p) { lo.push(p.tl); hi.push(p.tl); });
+    aiVisits.forEach(function (v) { lo.push(v.sl); hi.push(v.el); });
+    shots.forEach(function (s) { lo.push(s.tl); hi.push(s.tl); });
+    if (a.keyStats && a.keyStats.perMinute && a.keyStats.perMinute.length) { lo.push(toLine(a.keyStats.perMinute[0][0])); hi.push(toLine(a.keyStats.perMinute[a.keyStats.perMinute.length - 1][0])); }
+    var start = lo.length ? Math.min.apply(null, lo) : 0;
+    var end = hi.length ? Math.max.apply(null, hi) : start + 60000;
+    if (end <= start) end = start + 60000;
+
+    // ---- typing speed over time (words per minute per minute), on the revision timeline
+    var speed = (a.keyStats && a.keyStats.perMinute || []).map(function (pm) { return { t: toLine(pm[0]), wpm: pm[1] }; })
+      .filter(function (x) { return x.t >= start - 120000 && x.t <= end + 120000; });
+
+    return {
+      segments: segs, pastes: pastes, aiVisits: aiVisits, correlations: correlations,
+      screenshots: shots, sessions: sessions, timeline: { start: start, end: end },
+      speed: speed, humanWpm: E.DEFAULT_SETTINGS.impossibleWpm,
+      composition: comp, stats: st, hasRev: hasRev, hasEv: !!a.hasEvidence,
+      counts: {
+        typedWords: segs.filter(function (s) { return s.kind === "typed"; }).reduce(function (n, s) { return n + wordsIn(s.text); }, 0),
+        pasteWords: segs.filter(function (s) { return s.kind === "paste"; }).reduce(function (n, s) { return n + wordsIn(s.text); }, 0),
+        aiPasteWords: segs.filter(function (s) { return s.kind === "paste-ai"; }).reduce(function (n, s) { return n + wordsIn(s.text); }, 0),
+        untrackedWords: segs.filter(function (s) { return s.kind === "untracked"; }).reduce(function (n, s) { return n + wordsIn(s.text); }, 0)
+      }
+    };
+  };
+
   /** Baseline from a typing test file */
   E.baselineFromTest = function (test) {
     var ks = E.keyStats(test.keys || []);
@@ -823,8 +1024,10 @@ window.AT_CONFIG = {
   if (typeof module !== "undefined" && module.exports) module.exports = E;
   else root.ATEngine = E;
 })(typeof window !== "undefined" ? window : this);
+
 </script>
-<script>(function () {
+<script>
+(function () {
   "use strict";
   var E = window.ATEngine;
   var sb = supabase.createClient(window.AT_CONFIG.url, window.AT_CONFIG.anonKey);
@@ -914,7 +1117,7 @@ window.AT_CONFIG = {
     if(S.view.page==="doc") return renderDoc(S.view.id);
     var tabs=[["docs","Docs"],["writers","Writers"],["settings","Settings"]];
     app.innerHTML='<div class="wrap">'+
-      '<div class="topbar"><h1 class="grow">AuthorTrace</h1><span class="small muted">'+esc(S.org.name)+' · '+esc(S.user.email)+'</span><button class="btn small ghost" id="out">Sign out</button></div>'+
+      '<div class="topbar"><div class="brand grow"><span class="mark"></span><h1>AuthorTrace</h1></div><span class="small muted">'+esc(S.org.name)+' · '+esc(S.user.email)+'</span><button class="btn small ghost" id="out">Sign out</button></div>'+
       '<div class="tabs">'+tabs.map(function(t){return '<button class="'+(S.tab===t[0]?"on":"")+'" data-tab="'+t[0]+'">'+t[1]+'</button>';}).join("")+'</div>'+
       '<div id="body"></div></div>';
     document.getElementById("out").onclick=signOut;
@@ -1031,26 +1234,163 @@ window.AT_CONFIG = {
     // save report (best effort)
     sb.from("reports").upsert({doc_id:d.id,org_id:S.org.id,score:a.score,verdict:a.verdict,summary:{score:a.score,verdict:a.verdict,composition:a.composition}}).then(function(){});
     d._report={score:a.score,verdict:a.verdict};
-    document.getElementById("rep").innerHTML=reportHtml(a,d);
+    var model=E.reportModel(a);
+    document.getElementById("rep").innerHTML=reportHtml(a,d,model);
+    wireReport(a,d,model);
   }
-  function reportHtml(a,d){
-    var c=a.composition,st=a.stats;
-    var reasons=(a.reasons||[]).map(function(r){return '<li style="color:'+(r.good===true?"var(--ok)":r.good===null?"var(--muted)":"var(--ink)")+'">'+(r.good===true?"+ ":r.good===null?"i ":"− ")+esc(r.text)+'</li>';}).join("");
+  /* ---- report helpers ---- */
+  function r1(n){return Math.round((n||0)*10)/10;}
+  function clampN(v,a,b){return Math.max(a,Math.min(b,v));}
+  function fmtClock(ms){if(!ms)return "—";var d=new Date(ms);return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+", "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});}
+  function fmtT(ms){if(!ms)return "—";return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});}
+  function fmtD(min){min=Math.round(min||0);if(min<60)return min+" min";return Math.floor(min/60)+" h "+(min%60)+" min";}
+  function pos(m,t){var s=m.timeline.start,e=m.timeline.end;return e>s?clampN((t-s)/(e-s)*100,0,100):0;}
+
+  function verdictSentence(a,m){
+    var cc=m.counts,tot=cc.typedWords+cc.pasteWords+cc.aiPasteWords+cc.untrackedWords;
+    if(!tot)return "This document is "+a.composition.typed+"% typed and confirmed.";
+    function wp(x){return Math.round(x/tot*100);}
+    var bits=[wp(cc.typedWords)+"% typed and confirmed"];
+    if(cc.aiPasteWords)bits.push(wp(cc.aiPasteWords)+"% from an AI source");
+    if(cc.pasteWords)bits.push(wp(cc.pasteWords)+"% pasted");
+    if(cc.untrackedWords)bits.push(wp(cc.untrackedWords)+"% untracked");
+    var sent="This document is "+bits.join(", ")+".";
+    if(!cc.aiPasteWords&&m.correlations.length)sent+=" "+m.correlations.length+" paste"+(m.correlations.length>1?"s":"")+" lined up with an AI site visit.";
+    return sent;
+  }
+
+  function timelineHtml(m){
+    if(m.timeline.end<=m.timeline.start)return '<div class="tlwrap"><div class="tl-empty">Not enough timing data yet.</div></div>';
+    var h="";
+    m.sessions.forEach(function(s){var l=pos(m,s.start),w=Math.max(0.6,pos(m,s.end)-l);h+='<div class="tl-sess" style="left:'+l+'%;width:'+w+'%" title="Writing · '+fmtClock(s.start)+' · '+fmtD(s.durMin)+' · '+s.words+' words added"></div>';});
+    m.aiVisits.forEach(function(v){var l=pos(m,v.sl),w=Math.max(0.8,pos(m,v.el)-l);h+='<div class="tl-ai" style="left:'+l+'%;width:'+w+'%" title="On '+esc(v.domain)+' · '+fmtClock(v.start)+' · '+v.min+' min"></div>';if(w>7)h+='<div class="tl-ai-lbl" style="left:'+l+'%">'+esc(v.domain)+'</div>';});
+    m.pastes.forEach(function(p){var l=pos(m,p.tl);h+='<div class="tl-paste '+(p.ai?"orange":"red")+'" style="left:'+l+'%" title="'+(p.ai?"AI paste":"Paste")+' · '+p.words+' words'+(p.domain?" · "+esc(p.domain):"")+' · '+fmtClock(p.t)+'"></div>';});
+    m.screenshots.forEach(function(s){var l=pos(m,s.tl);h+='<div class="tl-shot" style="left:'+l+'%" title="Screenshot · '+fmtClock(s.t)+'"></div>';});
+    return '<div class="tlwrap">'+h+'</div><div class="tl-axis"><span>'+fmtClock(m.timeline.start)+'</span><span>'+fmtClock(m.timeline.end)+'</span></div>'+
+      '<p class="small muted" style="margin:8px 0 0"><span class="dot d-typed"></span>Typing &nbsp; <span class="dot d-ai" style="opacity:.5"></span>AI site open &nbsp; <span class="dot d-paste"></span>Paste &nbsp; <span class="dot d-ai"></span>AI paste &nbsp; <span class="dot" style="background:var(--accent)"></span>Screenshot</p>';
+  }
+
+  function correlationsHtml(m){
+    if(!m.correlations.length)return '<p class="corr-none">No pastes lined up with an AI site visit. That is a good sign.</p>';
+    return '<div class="corr">'+m.correlations.slice(0,12).map(function(c){
+      var line=c.direct?('Pasted '+c.words+' words copied straight from '+esc(c.domain)):('Visited '+esc(c.domain)+' for '+c.visitMin+' min, then pasted '+c.words+' words'+(c.gapSec!=null?' about '+(c.gapSec<60?c.gapSec+' sec':Math.round(c.gapSec/60)+' min')+' later':''));
+      return '<div class="corr-item"><span class="ai">AI</span><div><div class="big">'+line+'</div><div class="small muted">'+fmtClock(c.t)+'</div></div></div>';
+    }).join("")+'</div>';
+  }
+
+  function sessionsHtml(m){
+    if(!m.sessions.length)return '<p class="muted small">No separate writing sessions detected yet.</p>';
+    return '<div class="sess">'+m.sessions.slice(0,14).map(function(s,i){
+      return '<div class="sess-row"><div class="idx">'+(i+1)+'</div><div><b>'+fmtClock(s.start)+'</b><div class="meta">'+fmtD(s.durMin)+' · '+s.words+' words added'+(s.removed?' · '+Math.round(s.removed/5.7)+' removed':'')+'</div></div><div class="small muted">ends '+fmtT(s.end)+'</div></div>';
+    }).join("")+'</div>';
+  }
+
+  function sparkHtml(m){
+    var pts=m.speed;if(pts.length<2)return '';
+    var w=600,h=120,pad=26;
+    var maxW=Math.max(m.humanWpm+20,40);pts.forEach(function(p){if(p.wpm*1.1>maxW)maxW=p.wpm*1.1;});
+    var X=function(t){return pad+(t-m.timeline.start)/(m.timeline.end-m.timeline.start)*(w-pad*2);};
+    var Y=function(v){return h-18-(v/maxW)*(h-30);};
+    var poly=pts.map(function(p){return r1(X(p.t))+","+r1(Y(p.wpm));}).join(" ");
+    var hy=r1(Y(m.humanWpm));
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+      '<line x1="'+pad+'" y1="'+hy+'" x2="'+(w-pad)+'" y2="'+hy+'" stroke="var(--bad)" stroke-width="1.2" stroke-dasharray="5 4"/>'+
+      '<text class="spark-tip" x="'+(w-pad)+'" y="'+(hy-4)+'" text-anchor="end">human limit ~'+m.humanWpm+' wpm</text>'+
+      '<polyline points="'+poly+'" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>'+
+      '</svg><div class="tl-axis"><span>'+fmtClock(m.timeline.start)+'</span><span>'+fmtClock(m.timeline.end)+'</span></div>';
+  }
+
+  function documentHtml(m){
+    var body=m.segments.map(function(s){
+      var t=esc(s.text).replace(/\n/g,"<br>");
+      if(s.kind==="typed")return '<span class="seg seg-typed">'+t+'</span>';
+      var title=s.kind==="untracked"?"Untracked — no keystroke proof for this text":s.kind==="paste-ai"?("Pasted from AI"+(s.domain?" ("+s.domain+")":"")):s.kind==="paste"?"Pasted — source unknown":"Added by another account";
+      var k=s.kind==="other"?"untracked":s.kind;
+      return '<span class="seg seg-'+k+'" title="'+esc(title)+'">'+t+'</span>';
+    }).join("");
+    return '<div class="legend">'+
+      '<span class="lg"><i class="sw sw-typed"></i>Typed &amp; confirmed</span>'+
+      '<span class="lg"><i class="sw sw-untracked"></i>Untracked</span>'+
+      '<span class="lg"><i class="sw sw-paste"></i>Pasted</span>'+
+      '<span class="lg"><i class="sw sw-ai"></i>Pasted from AI</span></div>'+
+      '<div class="filters"><button class="fbtn on" data-f="all">All</button><button class="fbtn" data-f="paste">Pastes</button><button class="fbtn" data-f="paste-ai">AI pastes</button><button class="fbtn" data-f="untracked">Untracked</button></div>'+
+      '<div class="atv" id="atv">'+body+'</div>'+
+      '<p class="small muted" style="margin:2px 0 0">Hover any highlighted part to see what it is and where it came from.</p>';
+  }
+
+  function screenshotsHtml(m){
+    return '<div class="shots">'+m.screenshots.map(function(s){
+      return '<div class="shot"><div class="ph" data-path="'+esc(s.path||"")+'"'+(s.dataUrl?' data-url="'+esc(s.dataUrl)+'"':'')+'>loading…</div><div class="cap">'+fmtClock(s.t)+'</div></div>';
+    }).join("")+'</div>';
+  }
+
+  function reportHtml(a,d,m){
+    var c=a.composition,st=a.stats,cc=m.counts;
+    var tot=cc.typedWords+cc.pasteWords+cc.aiPasteWords+cc.untrackedWords||1;
+    function wp(x){return r1(x/tot*100);}
+    var col=scoreColor(a.score);
+    var reasons=(a.reasons||[]).slice(0,6).map(function(rr){
+      var cls=rr.good===true?"good":rr.good===null?"neutral":"bad",ic=rr.good===true?"+":rr.good===null?"i":"!";
+      return '<li class="'+cls+'"><span class="ic">'+ic+'</span><span>'+esc(rr.text)+'</span></li>';
+    }).join("");
+    var hero='<div class="card hero">'+
+      '<div class="ring" style="--p:'+a.score+';--c:'+col+'"><div style="text-align:center"><div class="n">'+a.score+'</div><div class="l">Human score</div></div></div>'+
+      '<div><div class="row" style="gap:8px"><span class="pill '+vClass(a.verdict)+'" style="font-size:14px">'+esc(a.verdict)+'</span><span class="small muted">'+esc(a.confidence)+' confidence</span></div>'+
+      '<p class="verdict-line">'+esc(verdictSentence(a,m))+'</p><ul class="reasons">'+reasons+'</ul></div></div>';
+
+    var aiPasteN=m.pastes.filter(function(p){return p.ai;}).length;
+    var tiles='<div class="tiles">'+
+      '<div class="tile"><b>'+st.words+'</b><span>Words</span></div>'+
+      '<div class="tile"><b>'+fmtD(st.activeMin)+'</b><span>Active time</span></div>'+
+      '<div class="tile"><b>'+st.wpm+'</b><span>Typing speed</span><small>wpm</small></div>'+
+      '<div class="tile"><b>'+st.peakWpm+'</b><span>Peak speed</span><small>limit '+m.humanWpm+'</small></div>'+
+      '<div class="tile"><b>'+st.pastes+'</b><span>Pastes</span></div>'+
+      '<div class="tile"><b>'+aiPasteN+'</b><span>From AI</span>'+(cc.aiPasteWords?'<small>'+cc.aiPasteWords+' words</small>':'')+'</div>'+
+      '<div class="tile"><b>'+st.screenshots+'</b><span>Screenshots</span></div>'+
+      '<div class="tile"><b>'+(st.sessions||m.sessions.length)+'</b><span>Sessions</span></div></div>';
+    var comp='<div class="card"><div class="sec-head"><h2>How it was written</h2><span class="hint">green typed, grey untracked, red pasted, orange from AI</span></div>'+
+      '<div class="compbar"><span style="width:'+wp(cc.typedWords)+'%;background:var(--typed)"></span><span style="width:'+wp(cc.pasteWords)+'%;background:var(--paste)"></span><span style="width:'+wp(cc.aiPasteWords)+'%;background:var(--other)"></span><span style="width:'+wp(cc.untrackedWords)+'%;background:var(--untracked)"></span></div>'+
+      '<div class="complegend"><span><span class="dot d-typed"></span>Typed <b>'+wp(cc.typedWords)+'%</b></span><span><span class="dot d-paste"></span>Pasted <b>'+wp(cc.pasteWords)+'%</b></span><span><span class="dot d-ai"></span>From AI <b>'+wp(cc.aiPasteWords)+'%</b></span><span><span class="dot d-untracked"></span>Untracked <b>'+wp(cc.untrackedWords)+'%</b></span></div>'+
+      tiles+'</div>';
+
+    var timeline='<div class="card"><div class="sec-head"><h2>Writing timeline</h2><span class="hint">the whole story, start to finish</span></div>'+timelineHtml(m)+'</div>';
+    var corr='<div class="card"><div class="sec-head"><h2>AI site and paste links</h2><span class="hint">pastes that followed time on an AI site</span></div>'+correlationsHtml(m)+'</div>';
+    var speed=m.speed.length>=2?'<div class="card"><div class="sec-head"><h2>Typing speed over time</h2><span class="hint">spikes above the line are usually pastes</span></div>'+sparkHtml(m)+'</div>':'';
+    var sessions='<div class="card"><div class="sec-head"><h2>Writing sessions</h2><span class="hint">natural sittings, split by long gaps</span></div>'+sessionsHtml(m)+'</div>';
+    var docCard=m.segments.length?'<div class="card"><div class="sec-head"><h2>The document</h2><span class="hint">color shows how each part was produced</span></div>'+documentHtml(m)+'</div>':'';
+    var shotsCard=m.screenshots.length?'<div class="card"><div class="sec-head"><h2>Screenshots</h2><span class="hint">random captures while writing</span></div>'+screenshotsHtml(m)+'</div>':'';
+
     var flags=(a.flags||[]).slice().sort(function(x,y){var o={high:0,medium:1,low:2};return o[x.severity]-o[y.severity];}).map(function(f){
       return '<div class="flag '+f.severity+'"><div class="stripe"></div><div><b>'+esc(f.title)+'</b>'+(f.detail?'<div class="small muted">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="flagquote">'+esc(f.snippet)+'</div>':'')+'</div></div>';
     }).join("")||'<p class="muted">No flags.</p>';
     var comps=(a.competitors||[]).map(function(cp){
-      var rows=(cp.matches||[]).map(function(m){return '<tr><td class="small">'+esc(m.doc)+'</td><td class="small muted">'+esc(m.comp)+'</td><td class="mono">'+m.sim+'%</td></tr>';}).join("");
+      var rows=(cp.matches||[]).map(function(mm){return '<tr><td class="small">'+esc(mm.doc)+'</td><td class="small muted">'+esc(mm.comp)+'</td><td class="mono">'+mm.sim+'%</td></tr>';}).join("");
       return '<h3 style="margin-top:10px"><a href="'+esc(cp.url)+'" target="_blank" rel="noopener">'+esc(cp.title||cp.url)+'</a> '+(cp.error?'<span class="err small">'+esc(cp.error)+'</span>':'<span class="small muted">'+cp.containment+'% overall</span>')+'</h3>'+(rows?'<table><thead><tr><th>This doc</th><th>Competitor</th><th>Match</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="small muted">No close sentence matches.</p>');
     }).join("")||'<p class="small muted">No competitors set.</p>';
-    return '<div class="card"><div class="row"><div style="font-size:40px;font-weight:800;color:'+scoreColor(a.score)+'">'+a.score+'</div><div class="grow"><span class="pill '+vClass(a.verdict)+'" style="font-size:15px">'+esc(a.verdict)+'</span> <span class="small muted">'+esc(a.confidence)+' confidence</span><ul class="small" style="margin:8px 0 0;padding-left:2px;list-style:none;display:grid;gap:4px">'+reasons+'</ul></div></div></div>'+
-      '<div class="card"><h2>How it was written</h2><div class="compbar"><span style="width:'+c.typed+'%;background:var(--typed)"></span><span style="width:'+c.paste+'%;background:var(--paste)"></span><span style="width:'+c.untracked+'%;background:var(--untracked)"></span><span style="width:'+c.other+'%;background:var(--other)"></span></div>'+
-      '<div class="small muted">Typed '+c.typed+'% · Pasted '+c.paste+'% · Untracked '+c.untracked+'% · Other '+c.other+'%</div>'+
-      '<div class="statrow"><div><span>Words</span><b>'+st.words+'</b></div><div><span>Active time</span><b>'+fmtMin(st.activeMin)+'</b></div><div><span>Typing speed</span><b>'+st.wpm+' wpm</b></div><div><span>Pastes</span><b>'+st.pastes+'</b></div><div><span>Screenshots</span><b>'+st.screenshots+'</b></div></div></div>'+
+
+    return hero+comp+timeline+corr+speed+sessions+docCard+shotsCard+
       '<div class="card"><h2>Flags</h2>'+flags+'</div>'+
       '<div class="card"><h2>Competitor comparison</h2>'+comps+'</div>';
   }
+
+  function lightbox(src){var el=document.createElement("div");el.className="lightbox";var i=new Image();i.src=src;el.appendChild(i);el.onclick=function(){el.remove();};document.body.appendChild(el);}
+  function wireReport(a,d,m){
+    var atv=document.getElementById("atv");
+    app.querySelectorAll(".fbtn").forEach(function(b){b.onclick=function(){
+      app.querySelectorAll(".fbtn").forEach(function(x){x.classList.remove("on");});b.classList.add("on");
+      if(!atv)return;if(b.dataset.f==="all")atv.removeAttribute("data-flt");else atv.setAttribute("data-flt",b.dataset.f);
+    };});
+    app.querySelectorAll(".shot .ph").forEach(function(ph){
+      if(ph.dataset.url){var im=new Image();im.src=ph.dataset.url;im.onclick=function(){lightbox(ph.dataset.url);};im.onload=function(){ph.parentNode.replaceChild(im,ph);};return;}
+      var path=ph.dataset.path;if(!path){ph.textContent="unavailable";return;}
+      sb.storage.from("evidence").createSignedUrl(path,3600).then(function(r){
+        if(r.error||!r.data){ph.textContent="unavailable";return;}
+        var img=new Image();img.src=r.data.signedUrl;img.onclick=function(){lightbox(r.data.signedUrl);};img.onerror=function(){ph.textContent="unavailable";};img.onload=function(){ph.parentNode.replaceChild(img,ph);};
+      }).catch(function(){ph.textContent="unavailable";});
+    });
+  }
 })();
+
 </script>
 </body>
 </html>
