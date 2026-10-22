@@ -121,7 +121,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .filters{display:flex;flex-wrap:wrap;gap:6px}
 .fbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:99px;padding:5px 13px;font-size:12.5px;font-weight:650;cursor:pointer}
 .fbtn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.atv{font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word;max-height:560px;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.atv{position:relative;font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word;max-height:560px;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .seg{border-radius:3px;padding:1px 0;transition:opacity .12s ease}
 .seg-untracked{background:color-mix(in srgb,var(--untracked) 26%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--untracked) 30%,transparent)}
 .seg-paste{background:color-mix(in srgb,var(--paste) 24%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--paste) 32%,transparent)}
@@ -157,6 +157,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .fl-quote{white-space:pre-wrap;margin-top:9px;padding:9px 11px;border-left:3px solid var(--line);background:var(--surface);border-radius:6px;font-size:12.5px;max-height:130px;overflow:auto}
 .fl-qlabel{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:4px}
 .fl-ok{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}
+.fl[data-seg]{cursor:pointer}
+.fl[data-seg]:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.fl-jump{display:inline-block;margin-top:9px;font-size:12px;font-weight:700;color:var(--accent)}
+.seg-flash{outline:2px solid var(--accent);outline-offset:1px;border-radius:3px;background:var(--accent-soft)!important;animation:segflash 1.1s ease}
+@keyframes segflash{0%{background:var(--accent)}45%{background:var(--accent-soft)}100%{background:var(--accent-soft)}}
 </style>
 </head>
 <body>
@@ -1262,6 +1267,18 @@ window.AT_CONFIG = {
   function fmtT(ms){if(!ms)return "—";return new Date(ms).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});}
   function fmtD(min){min=Math.round(min||0);if(min<60)return min+" min";return Math.floor(min/60)+" h "+(min%60)+" min";}
   function pos(m,t){var s=m.timeline.start,e=m.timeline.end;return e>s?clampN((t-s)/(e-s)*100,0,100):0;}
+  function findSeg(m,snippet){
+    if(!snippet)return -1;
+    var needle=String(snippet).toLowerCase().replace(/\s+/g," ").trim().slice(0,30);
+    if(needle.length<8)return -1;
+    for(var i=0;i<m.segments.length;i++){ if(m.segments[i].text.toLowerCase().replace(/\s+/g," ").indexOf(needle)>=0)return i; }
+    return -1;
+  }
+  function jumpToSeg(id){
+    var el=document.getElementById(id),atv=document.getElementById("atv");if(!el||!atv)return;
+    var card=atv.closest(".card");if(card)card.scrollIntoView({behavior:"smooth",block:"start"});
+    setTimeout(function(){atv.scrollTo({top:Math.max(0,el.offsetTop-atv.clientHeight/2+el.offsetHeight/2),behavior:"smooth"});el.classList.add("seg-flash");setTimeout(function(){el.classList.remove("seg-flash");},2400);},380);
+  }
 
   function verdictSentence(a,m){
     var cc=m.counts,tot=cc.typedWords+cc.pasteWords+cc.aiPasteWords+cc.untrackedWords;
@@ -1318,12 +1335,12 @@ window.AT_CONFIG = {
   }
 
   function documentHtml(m){
-    var body=m.segments.map(function(s){
+    var body=m.segments.map(function(s,i){
       var t=esc(s.text).replace(/\n/g,"<br>");
-      if(s.kind==="typed")return '<span class="seg seg-typed">'+t+'</span>';
+      if(s.kind==="typed")return '<span class="seg seg-typed" id="seg'+i+'">'+t+'</span>';
       var title=s.kind==="untracked"?"Untracked — no keystroke proof for this text":s.kind==="paste-ai"?("Pasted from AI"+(s.domain?" ("+s.domain+")":"")):s.kind==="paste"?"Pasted — source unknown":"Added by another account";
       var k=s.kind==="other"?"untracked":s.kind;
-      return '<span class="seg seg-'+k+'" title="'+esc(title)+'">'+t+'</span>';
+      return '<span class="seg seg-'+k+'" id="seg'+i+'" title="'+esc(title)+'">'+t+'</span>';
     }).join("");
     return '<div class="legend">'+
       '<span class="lg"><i class="sw sw-typed"></i>Typed &amp; confirmed</span>'+
@@ -1377,10 +1394,13 @@ window.AT_CONFIG = {
     var docCard=m.segments.length?'<div class="card"><div class="sec-head"><h2>The document</h2><span class="hint">color shows how each part was produced</span></div>'+documentHtml(m)+'</div>':'';
     var shotsCard=m.screenshots.length?'<div class="card"><div class="sec-head"><h2>Screenshots</h2><span class="hint">random captures while writing</span></div>'+screenshotsHtml(m)+'</div>':'';
 
-    var SEV={high:["High","fl-high","!"],medium:["Medium","fl-med","!"],low:["Minor","fl-low","i"]};
+    var SEVLBL={high:["High","fl-high","!"],medium:["Medium","fl-med","!"],low:["Minor","fl-low","i"]};
     var flags=(a.flags||[]).slice().sort(function(x,y){var o={high:0,medium:1,low:2};return o[x.severity]-o[y.severity];}).map(function(f){
-      var sv=SEV[f.severity]||SEV.low;
-      return '<div class="fl '+sv[1]+'"><div class="fl-ic">'+sv[2]+'</div><div class="fl-body"><div class="fl-top"><span class="fl-badge">'+sv[0]+'</span><b class="fl-title">'+esc(f.title)+'</b></div>'+(f.detail?'<div class="fl-detail">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="fl-quote"><span class="fl-qlabel">From the document</span>'+esc(f.snippet)+'</div>':'')+'</div></div>';
+      var sv=SEVLBL[f.severity]||SEVLBL.low;
+      var si=findSeg(m,f.snippet);
+      var jump=si>=0?' data-seg="seg'+si+'"':'';
+      var cue=si>=0?'<span class="fl-jump">Show in document &darr;</span>':'';
+      return '<div class="fl '+sv[1]+'"'+jump+'><div class="fl-ic">'+sv[2]+'</div><div class="fl-body"><div class="fl-top"><span class="fl-badge">'+sv[0]+'</span><b class="fl-title">'+esc(f.title)+'</b></div>'+(f.detail?'<div class="fl-detail">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="fl-quote"><span class="fl-qlabel">The exact text</span>'+esc(f.snippet)+'</div>':'')+cue+'</div></div>';
     }).join("")||'<div class="fl-ok">Nothing stood out in how this document was written.</div>';
     var comps=(a.competitors||[]).map(function(cp){
       var rows=(cp.matches||[]).map(function(mm){return '<tr><td class="small">'+esc(mm.doc)+'</td><td class="small muted">'+esc(mm.comp)+'</td><td class="mono">'+mm.sim+'%</td></tr>';}).join("");
@@ -1396,6 +1416,7 @@ window.AT_CONFIG = {
   function lightbox(src){var el=document.createElement("div");el.className="lightbox";var i=new Image();i.src=src;el.appendChild(i);el.onclick=function(){el.remove();};document.body.appendChild(el);}
   function wireReport(a,d,m){
     var atv=document.getElementById("atv");
+    app.querySelectorAll(".fl[data-seg]").forEach(function(c){c.onclick=function(){jumpToSeg(c.dataset.seg);};});
     app.querySelectorAll(".fbtn").forEach(function(b){b.onclick=function(){
       app.querySelectorAll(".fbtn").forEach(function(x){x.classList.remove("on");});b.classList.add("on");
       if(!atv)return;if(b.dataset.f==="all")atv.removeAttribute("data-flt");else atv.setAttribute("data-flt",b.dataset.f);
