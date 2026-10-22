@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AuthorTrace</title>
+<style>
+:root{--bg:#eef2f0;--surface:#fff;--sunk:#f6f8f7;--ink:#15211d;--muted:#5a6863;--line:#d6dedb;--accent:#1d5c63;--accent-ink:#fff;--accent-soft:#dcebea;--typed:#1f7a52;--paste:#c2412d;--untracked:#6f7a76;--other:#a8690f;--ok:#1f7a52;--warn:#b7791f;--bad:#c2412d;--r:8px;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1412;--surface:#151f1c;--sunk:#111a17;--ink:#e5eeea;--muted:#93a29d;--line:#26332f;--accent:#63b7b5;--accent-ink:#08110f;--accent-soft:#1b3433;--typed:#4fbf8a;--paste:#f07a66;--untracked:#94a09c;--other:#e3b04b;--ok:#4fbf8a;--warn:#e3b04b;--bad:#f07a66;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+h1,h2,h3{margin:0;line-height:1.25}h1{font-size:24px}h2{font-size:18px}h3{font-size:15px}
+a{color:var(--accent)}button{font:inherit}
+.muted{color:var(--muted)}.small{font-size:13px}.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px;display:grid;gap:18px}
+.auth{max-width:380px;margin:60px auto;display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:0}
+label{font-weight:600;font-size:13px;display:grid;gap:4px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+textarea{min-height:70px;resize:vertical}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.btn.small{padding:4px 10px;font-size:13px}.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+.tabs{display:flex;gap:4px}.tabs button{border:0;background:none;padding:8px 12px;font-weight:700;color:var(--muted);border-radius:6px;cursor:pointer}.tabs button.on{background:var(--accent-soft);color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px;border-bottom:1px solid var(--line)}td{padding:9px 8px;border-bottom:1px solid var(--line)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px}
+.v-good{color:var(--ok);background:var(--accent-soft)}.v-mid{color:var(--warn);background:#f6e7cc}.v-bad{color:var(--bad);background:#f9e0db}.v-none{color:var(--muted);background:var(--sunk)}
+.scorechip{font-family:ui-monospace,monospace;font-weight:700;min-width:34px;text-align:center;display:inline-block;padding:2px 6px;border-radius:4px;background:var(--sunk)}
+.compbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--sunk);min-width:120px}.compbar span{height:100%}
+.flag{display:grid;grid-template-columns:4px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.flag .stripe{border-radius:2px}.flag.high .stripe{background:var(--bad)}.flag.medium .stripe{background:var(--warn)}.flag.low .stripe{background:var(--untracked)}
+.flagquote{white-space:pre-wrap;margin-top:6px;padding:8px 10px;border-left:3px solid var(--paste);background:var(--sunk);border-radius:4px;font-size:13px}
+.err{color:var(--bad)}.ok{color:var(--ok)}
+.toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:6px;font-weight:700;z-index:50;max-width:380px}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);display:grid;gap:8px;justify-items:center}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.statrow>div{background:var(--surface);padding:10px;display:grid;gap:2px}.statrow b{font-family:ui-monospace,monospace;font-size:18px}.statrow span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.back{cursor:pointer;color:var(--accent);font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"><div class="wrap"><p class="muted">Loading...</p></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>// AuthorTrace Supabase connection settings (safe to share: anon key only)
+window.AT_CONFIG = {
+  url: "https://uuidjyetejvdbvldcdzv.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1aWRqeWV0ZWp2ZGJ2bGRjZHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NDc4NzIsImV4cCI6MjEwODIyMzg3Mn0.pjfEEMc86fnY3yC_GmmLJj9y_7yehbMkhuU0DjORju4"
+};
+</script>
+<script>/* AuthorTrace analysis engine v1
+ * Works in the browser (window.ATEngine) and in Node (module.exports).
+ * Inputs:
+ *   rev  = owner export  { format:"authortrace.revisions", docId, title, users:{id:name}, ops:[[t,u,"i",idx,text]|[t,u,"d",si,ei]], changelog? , competitors:[{url,title,text}] }
+ *   evs  = writer evidence files (array) { format:"authortrace.evidence", docId, writer, keys:[[t,cat,trusted]], pastes:[{t,len,text,hash,source}], focus:[{t,ev}], heartbeats:[t], aiVisits:[{domain,start,end}], screenshots:[{t,assetId|dataUrl}], declaration, sessions, ext:[{t,ev}] }
+ *   ctx  = { settings, baseline, styleVector }
+ */
+(function (root) {
+  "use strict";
+  var E = {};
+
+  E.VERSION = "1.1.0";
+  E.DEFAULT_SETTINGS = {
+    weights: { origin: 30, behaviour: 20, integrity: 15, source: 15, baseline: 10, text: 10 },
+    idleMs: 60000,
+    sessionGapMs: 30 * 60000,
+    matchWindowMs: 20000,
+    largePasteChars: 200,
+    impossibleWpm: 90,
+    aiDomains: ["chatgpt.com", "chat.openai.com", "openai.com", "claude.ai", "gemini.google.com", "bard.google.com",
+      "perplexity.ai", "copilot.microsoft.com", "poe.com", "quillbot.com", "undetectable.ai", "jasper.ai",
+      "writesonic.com", "copy.ai", "rytr.me", "grok.com", "x.ai", "deepseek.com", "chat.deepseek.com",
+      "meta.ai", "you.com", "character.ai", "humanizeai.pro", "stealthwriter.ai", "bypassgpt.ai", "writehuman.ai"]
+  };
+
+  var CHAR_CATS = { c: 1, p: 1, q: 1, s: 1, e: 1 };
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function mean(a) { if (!a.length) return 0; var s = 0; for (var i = 0; i < a.length; i++) s += a[i]; return s / a.length; }
+  function sd(a) { if (a.length < 2) return 0; var m = mean(a), s = 0; for (var i = 0; i < a.length; i++) s += (a[i] - m) * (a[i] - m); return Math.sqrt(s / (a.length - 1)); }
+  function median(a) { if (!a.length) return 0; var b = a.slice().sort(function (x, y) { return x - y; }); var m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+  function round(v, d) { var p = Math.pow(10, d || 0); return Math.round(v * p) / p; }
+  function wordsIn(s) { var m = s.match(/[A-Za-z0-9À-ɏ؀-ۿ']+/g); return m ? m.length : 0; }
+  function cleanDocText(s) { return s.replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "\n").replace(/\n{3,}/g, "\n\n"); }
+  E.cleanDocText = cleanDocText;
+  E.wordsIn = wordsIn;
+
+  function domainMatches(domain, list) {
+    if (!domain) return false;
+    domain = String(domain).toLowerCase().replace(/^www\./, "");
+    for (var i = 0; i < list.length; i++) {
+      var d = list[i].toLowerCase();
+      if (domain === d || domain.slice(-(d.length + 1)) === "." + d) return true;
+    }
+    return false;
+  }
+  E.domainMatches = domainMatches;
+
+  /* ---------- 1. Revision parsing ---------- */
+  function flattenCmd(cmd, out) {
+    if (!cmd || typeof cmd !== "object") return;
+    if (cmd.ty === "mlti" && Array.isArray(cmd.mts)) { for (var i = 0; i < cmd.mts.length; i++) flattenCmd(cmd.mts[i], out); }
+    else if (cmd.ty === "is" && typeof cmd.s === "string") out.push(["i", cmd.ibi, cmd.s]);
+    else if (cmd.ty === "ds" && typeof cmd.si === "number") out.push(["d", cmd.si, cmd.ei]);
+  }
+  E.flattenCmd = flattenCmd;
+
+  /** Normalize either raw Google changelog or compact ops into [{t,u,type,idx,text,si,ei}] */
+  E.normalizeOps = function (rev) {
+    var out = [];
+    if (rev && Array.isArray(rev.ops)) {
+      for (var i = 0; i < rev.ops.length; i++) {
+        var o = rev.ops[i];
+        if (!Array.isArray(o)) continue;
+        if (o[2] === "i") out.push({ t: +o[0], u: String(o[1]), type: "ins", idx: +o[3], text: String(o[4]) });
+        else if (o[2] === "d") out.push({ t: +o[0], u: String(o[1]), type: "del", si: +o[3], ei: +o[4] });
+      }
+    } else if (rev && Array.isArray(rev.changelog)) {
+      for (var j = 0; j < rev.changelog.length; j++) {
+        var e = rev.changelog[j];
+        if (!Array.isArray(e)) continue;
+        var flat = []; flattenCmd(e[0], flat);
+        for (var k = 0; k < flat.length; k++) {
+          var f = flat[k];
+          if (f[0] === "i") out.push({ t: +e[1], u: String(e[2]), type: "ins", idx: +f[1], text: f[2] });
+          else out.push({ t: +e[1], u: String(e[2]), type: "del", si: +f[1], ei: +f[2] });
+        }
+      }
+    }
+    return out;
+  };
+
+  /** Apply ops to rebuild the document. Calls onOp(op, i, doc) after each. Returns {chars, meta} */
+  function applyOp(chars, meta, op, opIndex) {
+    if (op.type === "ins") {
+      var at = clamp((op.idx || 1) - 1, 0, chars.length);
+      op.atEnd = at >= chars.length - 1;
+      op.pos = at;
+      var s = op.text, n = s.length;
+      if (n < 5000) {
+        var c = new Array(n), m = new Array(n);
+        for (var i = 0; i < n; i++) { c[i] = s[i]; m[i] = opIndex; }
+        Array.prototype.splice.apply(chars, [at, 0].concat(c));
+        Array.prototype.splice.apply(meta, [at, 0].concat(m));
+      } else {
+        var cc = s.split(""), mm = new Array(n).fill(opIndex);
+        var tailC = chars.splice(at), tailM = meta.splice(at);
+        for (var a = 0; a < n; a++) { chars.push(cc[a]); meta.push(mm[a]); }
+        for (var b = 0; b < tailC.length; b++) { chars.push(tailC[b]); meta.push(tailM[b]); }
+      }
+    } else if (op.type === "del") {
+      var si = clamp((op.si || 1) - 1, 0, chars.length);
+      var ei = clamp((op.ei || op.si) - 1, si, chars.length - 1);
+      var cnt = Math.max(0, ei - si + 1);
+      op.delLen = cnt;
+      op.pos = si;
+      if (cnt > 0) {
+        var removed = meta.splice(si, cnt);
+        chars.splice(si, cnt);
+        op.removedFrom = removed;
+      }
+    }
+  }
+  E.applyOp = applyOp;
+
+  /* ---------- 2. Key analytics (evidence) ---------- */
+  E.keyStats = function (keys, idleMs) {
+    idleMs = idleMs || 60000;
+    keys = (keys || []).slice().sort(function (a, b) { return a[0] - b[0]; });
+    var res = { total: keys.length, charKeys: 0, editKeys: 0, navKeys: 0, untrusted: 0, intervals: 0, meanInterval: 0, cv: 0,
+      activeMs: 0, wpm: 0, pauses: 0, thinkingPauses: 0, bursts: 0, avgBurst: 0, editRatio: 0,
+      pauseHist: [0, 0, 0, 0, 0], perMinute: [], peakWpm: 0, firstT: keys.length ? keys[0][0] : 0, lastT: keys.length ? keys[keys.length - 1][0] : 0 };
+    if (!keys.length) return res;
+    var iv = [], burst = 0, burstLens = [];
+    var minuteMap = {};
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i], cat = k[1];
+      if (CHAR_CATS[cat]) { res.charKeys++; var mk = Math.floor(k[0] / 60000); minuteMap[mk] = (minuteMap[mk] || 0) + 1; }
+      else if (cat === "b" || cat === "d") res.editKeys++;
+      else if (cat === "a") res.navKeys++;
+      if (k[2] === 0 || k[2] === false) res.untrusted++;
+      if (i > 0) {
+        var g = k[0] - keys[i - 1][0];
+        if (g < idleMs) res.activeMs += g;
+        if (g < 2000) { iv.push(g); burst++; }
+        else {
+          burstLens.push(burst + 1); burst = 0;
+          if (g < 300000) {
+            res.pauses++;
+            var hb = g < 5000 ? 0 : g < 10000 ? 1 : g < 30000 ? 2 : g < 60000 ? 3 : 4;
+            res.pauseHist[hb]++;
+            var p1 = keys[i - 1][1], p2 = i > 1 ? keys[i - 2][1] : "";
+            if (p1 === "p" || p1 === "e" || (p1 === "s" && p2 === "p")) res.thinkingPauses++;
+          }
+        }
+      }
+    }
+    burstLens.push(burst + 1);
+    var rhythm = iv.filter(function (x) { return x >= 30 && x <= 1500; });
+    res.intervals = rhythm.length;
+    res.meanInterval = round(mean(rhythm), 0);
+    res.cv = rhythm.length > 10 ? round(sd(rhythm) / (mean(rhythm) || 1), 3) : 0;
+    res.bursts = burstLens.length;
+    res.avgBurst = round(mean(burstLens), 1);
+    res.wpm = res.activeMs > 0 ? round((res.charKeys / 5) / (res.activeMs / 60000), 1) : 0;
+    res.editRatio = res.charKeys ? round(res.editKeys / res.charKeys * 100, 1) : 0;
+    var mins = Object.keys(minuteMap).map(Number).sort(function (a, b) { return a - b; });
+    res.perMinute = mins.map(function (m) { return [m * 60000, round(minuteMap[m] / 5, 1)]; });
+    // peak sustained: best 5-minute rolling average
+    var peak = 0;
+    for (var a = 0; a < mins.length; a++) {
+      var sum = 0, cnt = 0;
+      for (var b = a; b < mins.length && mins[b] - mins[a] < 5; b++) { sum += minuteMap[mins[b]]; cnt++; }
+      if (cnt >= 3) peak = Math.max(peak, sum / 5 / cnt);
+    }
+    res.peakWpm = round(peak, 1);
+    res.thinkingPer100Words = res.charKeys ? round(res.thinkingPauses / (res.charKeys / 5) * 100, 2) : 0;
+    return res;
+  };
+
+  /* ---------- 3. Text patterns ---------- */
+  var AI_PHRASES = ["it's important to note", "it is important to note", "it's worth noting", "it is worth noting", "in conclusion",
+    "delve", "in today's digital", "in today's fast-paced", "in the ever-evolving", "ever-evolving", "navigate the", "landscape of",
+    "tapestry", "embark on", "unlock the", "elevate your", "seamless", "seamlessly", "robust", "leverage", "whether you're",
+    "look no further", "game-changer", "game changer", "dive into", "let's dive", "plays a crucial role", "a crucial role",
+    "in summary", "furthermore", "moreover", "additionally", "comprehensive guide", "ultimate guide", "realm of", "testament to",
+    "harness the power", "at the end of the day", "it's essential to", "it is essential to", "a wide range of", "cutting-edge",
+    "stands out as", "not only", "in this article", "this guide"];
+  E.AI_PHRASES = AI_PHRASES;
+
+  E.textPatterns = function (text) {
+    text = cleanDocText(text || "");
+    var words = wordsIn(text);
+    var sentences = text.split(/(?<=[.!?])\s+|\n+/).map(function (s) { return s.trim(); }).filter(function (s) { return wordsIn(s) >= 6; });
+    var lens = sentences.map(wordsIn);
+    var lower = text.toLowerCase().replace(/[‘’]/g, "'");
+    var found = [], phraseHits = 0;
+    for (var i = 0; i < AI_PHRASES.length; i++) {
+      var p = AI_PHRASES[i], idx = 0, c = 0;
+      while ((idx = lower.indexOf(p, idx)) !== -1) { c++; idx += p.length; }
+      if (c) { found.push([p, c]); phraseHits += c; }
+    }
+    found.sort(function (a, b) { return b[1] - a[1]; });
+    var emDashes = (text.match(/—/g) || []).length;
+    var toks = (lower.match(/[a-z']+/g) || []).slice(0, 600);
+    var uniq = {}; toks.forEach(function (t) { uniq[t] = 1; });
+    var ttr = toks.length ? Object.keys(uniq).length / toks.length : 0;
+    var cv = lens.length > 4 ? sd(lens) / (mean(lens) || 1) : 0.6;
+    var per1k = words ? 1000 / words : 0;
+    var phraseRate = phraseHits * per1k, dashRate = emDashes * per1k;
+    // heuristic AI-likeness 0..100
+    var score = 0;
+    score += cv < 0.3 ? 35 : cv < 0.42 ? 22 : cv < 0.55 ? 10 : 0;
+    score += Math.min(35, phraseRate * 4);
+    score += dashRate > 6 ? 15 : dashRate > 3 ? 8 : 0;
+    score += (ttr && ttr < 0.38) ? 10 : 0;
+    var colons = (text.match(/^[^\n:]{3,60}:\s/gm) || []).length;
+    score += Math.min(5, colons * per1k);
+    return {
+      words: words, sentences: sentences.length, avgSentence: round(mean(lens), 1), sentenceCV: round(cv, 2),
+      phraseHits: phraseHits, topPhrases: found.slice(0, 8), emDashes: emDashes, ttr: round(ttr, 2),
+      aiScore: Math.round(clamp(score, 0, 100))
+    };
+  };
+
+  /* ---------- 4. Style fingerprint ---------- */
+  var FUNC = "the of and a to in is you that it was for on are as with they i at be this have from or one had by but not what all were we when your can there an which she do how their if will so about would them these some her him into has more could".split(" ");
+  E.styleVector = function (text) {
+    text = cleanDocText(text || "").toLowerCase();
+    var toks = text.match(/[a-z']+/g) || [];
+    var n = toks.length || 1, cnt = {};
+    toks.forEach(function (t) { cnt[t] = (cnt[t] || 0) + 1; });
+    var v = FUNC.map(function (w) { return (cnt[w] || 0) / n * 1000; });
+    var tp = E.textPatterns(text);
+    v.push(tp.avgSentence * 2, (text.match(/,/g) || []).length / n * 1000, (text.match(/[;:]/g) || []).length / n * 1000,
+      (text.match(/\?/g) || []).length / n * 1000, (text.match(/\(/g) || []).length / n * 1000);
+    return { v: v.map(function (x) { return round(x, 2); }), words: toks.length };
+  };
+  E.cosine = function (a, b) {
+    if (!a || !b || a.length !== b.length) return null;
+    var d = 0, x = 0, y = 0;
+    for (var i = 0; i < a.length; i++) { d += a[i] * b[i]; x += a[i] * a[i]; y += b[i] * b[i]; }
+    return x && y ? d / Math.sqrt(x * y) : null;
+  };
+  E.mergeStyle = function (agg, sv) {
+    if (!agg) return { v: sv.v.slice(), n: 1 };
+    return { v: agg.v.map(function (x, i) { return round((x * agg.n + sv.v[i]) / (agg.n + 1), 2); }), n: agg.n + 1 };
+  };
+
+  /* ---------- 5. Competitor similarity ---------- */
+  function normWords(text) { return (cleanDocText(text || "").toLowerCase().replace(/[‘’]/g, "'").match(/[a-z0-9À-ɏ']+/g) || []); }
+  E.similarity = function (docText, compText, n) {
+    n = n || 6;
+    var a = normWords(docText), b = normWords(compText);
+    if (a.length < n || b.length < n) return { containment: 0, matchedWords: 0, passages: [] };
+    var set = new Set();
+    for (var j = 0; j + n <= b.length; j++) set.add(b.slice(j, j + n).join(" "));
+    var hit = new Uint8Array(a.length), total = 0, matched = 0;
+    for (var i = 0; i + n <= a.length; i++) {
+      total++;
+      if (set.has(a.slice(i, i + n).join(" "))) { matched++; for (var k = i; k < i + n; k++) hit[k] = 1; }
+    }
+    var passages = [], start = -1;
+    for (var p = 0; p <= a.length; p++) {
+      if (p < a.length && hit[p]) { if (start < 0) start = p; }
+      else if (start >= 0) { if (p - start >= 10) passages.push({ words: p - start, text: a.slice(start, Math.min(p, start + 40)).join(" ") + (p - start > 40 ? " ..." : "") }); start = -1; }
+    }
+    passages.sort(function (x, y) { return y.words - x.words; });
+    var mw = 0; for (var q = 0; q < hit.length; q++) mw += hit[q];
+    return { containment: round(matched / total * 100, 1), matchedWords: mw, passages: passages.slice(0, 5) };
+  };
+
+  /* Sentence-by-sentence match: for each doc sentence, the closest competitor sentence */
+  function splitSentences(text) {
+    return cleanDocText(text || "").replace(/\s+/g, " ").split(/(?<=[.!?])\s+/).map(function (s) { return s.trim(); }).filter(function (s) { return wordsIn(s) >= 6; });
+  }
+  function uniqTrigrams(s) {
+    var w = s.toLowerCase().match(/[a-z0-9À-ɏ']+/g) || [], seen = {}, g = [];
+    for (var i = 0; i + 3 <= w.length; i++) { var tg = w[i] + " " + w[i + 1] + " " + w[i + 2]; if (!seen[tg]) { seen[tg] = 1; g.push(tg); } }
+    return g;
+  }
+  E.sentenceMatches = function (docText, compText) {
+    var docS = splitSentences(docText).slice(0, 400), compS = splitSentences(compText).slice(0, 1000);
+    if (!docS.length || !compS.length) return [];
+    var compG = compS.map(uniqTrigrams), index = {};
+    compG.forEach(function (g, ci) { g.forEach(function (tg) { (index[tg] = index[tg] || []).push(ci); }); });
+    var out = [], usedComp = {};
+    docS.forEach(function (ds) {
+      var g = uniqTrigrams(ds); if (g.length < 2) return;
+      var cand = {};
+      g.forEach(function (tg) { (index[tg] || []).forEach(function (ci) { cand[ci] = (cand[ci] || 0) + 1; }); });
+      var bestCi = -1, bestShared = 0;
+      Object.keys(cand).forEach(function (ci) { if (cand[ci] > bestShared) { bestShared = cand[ci]; bestCi = +ci; } });
+      if (bestCi < 0) return;
+      var sim = bestShared / Math.max(1, Math.min(g.length, compG[bestCi].length));
+      if (sim >= 0.34) out.push({ ci: bestCi, doc: ds.slice(0, 240), comp: compS[bestCi].slice(0, 240), sim: Math.round(sim * 100) });
+    });
+    out.sort(function (a, b) { return b.sim - a.sim; });
+    return out.filter(function (m) { if (usedComp[m.ci]) return false; usedComp[m.ci] = 1; return true; }).slice(0, 15).map(function (m) { return { doc: m.doc, comp: m.comp, sim: m.sim }; });
+  };
+
+  /* ---------- 6. Merge evidence ---------- */
+  E.mergeEvidence = function (evs) {
+    var m = { keys: [], pastes: [], focus: [], heartbeats: [], aiVisits: [], screenshots: [], ext: [], copies: [], declaration: null, writer: null, sessions: [], files: 0, consent: null };
+    (evs || []).forEach(function (e) {
+      if (!e) return;
+      m.files++;
+      ["keys", "pastes", "focus", "heartbeats", "aiVisits", "screenshots", "ext", "copies", "sessions"].forEach(function (k) { if (Array.isArray(e[k])) m[k] = m[k].concat(e[k]); });
+      if (e.declaration) m.declaration = e.declaration;
+      if (e.writer) m.writer = e.writer;
+      if (e.consent) m.consent = e.consent;
+    });
+    m.keys.sort(function (a, b) { return a[0] - b[0]; });
+    m.pastes.sort(function (a, b) { return a.t - b.t; });
+    m.focus.sort(function (a, b) { return a.t - b.t; });
+    m.heartbeats.sort(function (a, b) { return a - b; });
+    m.aiVisits.sort(function (a, b) { return a.start - b.start; });
+    m.screenshots.sort(function (a, b) { return a.t - b.t; });
+    return m;
+  };
+
+  /* lower-bound binary search on sorted numeric accessor */
+  function lowerBound(arr, t, get) {
+    var lo = 0, hi = arr.length;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (get(arr[mid]) < t) lo = mid + 1; else hi = mid; }
+    return lo;
+  }
+
+  /* ---------- 7. Main analysis ---------- */
+  E.analyze = function (rev, evs, ctx) {
+    ctx = ctx || {};
+    var S = Object.assign({}, E.DEFAULT_SETTINGS, ctx.settings || {});
+    S.weights = Object.assign({}, E.DEFAULT_SETTINGS.weights, (ctx.settings || {}).weights || {});
+    var ev = E.mergeEvidence(evs || []);
+    var hasEv = ev.files > 0 && (ev.keys.length > 0 || ev.pastes.length > 0);
+    var ops = rev ? E.normalizeOps(rev) : [];
+    var hasRev = ops.length > 0;
+    var flags = [], notes = [];
+    function flag(kind, severity, title, detail, t, words, snippet) { flags.push({ id: kind + "-" + flags.length, kind: kind, severity: severity, title: title, detail: detail || "", t: t || null, words: words || 0, snippet: snippet ? String(snippet).replace(/[\u0000-\u0008\u000B-\u001F]/g, " ").trim().slice(0, 400) : "" }); }
+
+    var keyStats = E.keyStats(ev.keys, S.idleMs);
+    var users = (rev && rev.users) || {};
+
+    // ---- primary author
+    var charsByUser = {};
+    ops.forEach(function (o) { if (o.type === "ins") charsByUser[o.u] = (charsByUser[o.u] || 0) + o.text.length; });
+    var primary = null, best = -1;
+    Object.keys(charsByUser).forEach(function (u) { if (charsByUser[u] > best) { best = charsByUser[u]; primary = u; } });
+    if (rev && rev.writerUserId && charsByUser[rev.writerUserId] !== undefined) primary = rev.writerUserId;
+
+    // ---- clock offset (evidence time - revision time) using pastes
+    var offset = 0;
+    if (hasEv && hasRev && ev.pastes.length) {
+      var deltas = [];
+      ev.pastes.forEach(function (p) {
+        if (p.len < 20) return;
+        var bestD = null;
+        for (var i = 0; i < ops.length; i++) {
+          var o = ops[i];
+          if (o.type !== "ins") continue;
+          var d = p.t - o.t;
+          if (Math.abs(d) > 300000) continue;
+          if (Math.abs(o.text.length - p.len) <= Math.max(5, p.len * 0.15)) { if (bestD === null || Math.abs(d) < Math.abs(bestD)) bestD = d; }
+        }
+        if (bestD !== null) deltas.push(bestD);
+      });
+      if (deltas.length) offset = median(deltas);
+    }
+
+    // ---- replay ops + classify
+    var chars = [], meta = [];
+    var cls = new Array(ops.length);
+    var usedPaste = new Set();
+    var prevT = {}, insertedBy = { typed: 0, paste: 0, untracked: 0, other: 0 }, deletedChars = 0;
+    var linearTyped = 0, typedInsChars = 0, revPauses = 0;
+    var samples = [], sampleEvery = Math.max(1, Math.floor(ops.length / 300));
+    var keyT = ev.keys.map(function (k) { return k[0]; });
+    function keysInWindow(t0, t1) {
+      var a = lowerBound(keyT, t0, function (x) { return x; }), b = lowerBound(keyT, t1, function (x) { return x; });
+      var c = 0; for (var i = a; i < b; i++) if (CHAR_CATS[ev.keys[i][1]]) c++;
+      return c;
+    }
+    var W = S.matchWindowMs;
+    for (var i = 0; i < ops.length; i++) {
+      var o = ops[i];
+      applyOp(chars, meta, o, i);
+      if (o.type === "del") { deletedChars += o.delLen || 0; cls[i] = "del"; }
+      else {
+        var len = o.text.length;
+        var dt = prevT[o.u] ? o.t - prevT[o.u] : 60000;
+        var c;
+        var pasteLike = len >= 300 || (len >= 30 && len / (Math.max(dt, 1000) / 1000) > 15);
+        if (o.u !== primary) c = "other";
+        else if (hasEv) {
+          var te = o.t + offset;
+          var pi = -1;
+          for (var j = lowerBound(ev.pastes, te - W, function (p) { return p.t; }); j < ev.pastes.length && ev.pastes[j].t <= te + W; j++) {
+            var p = ev.pastes[j];
+            if (!usedPaste.has(j) && Math.abs(p.len - len) <= Math.max(5, len * 0.2)) { pi = j; break; }
+          }
+          if (pi >= 0 && len >= 8) { usedPaste.add(pi); o.paste = pi; c = (ev.pastes[pi].source && ev.pastes[pi].source.internal) ? "typed" : "paste"; if (c === "typed") o.moved = true; }
+          else {
+            var k = keysInWindow(te - W, te + 5000);
+            if (k > 0 && k >= Math.min(len, 3) && (!pasteLike || k >= len * 0.5)) c = "typed";
+            else c = "untracked";
+          }
+        } else c = pasteLike ? "paste" : "typed";
+        if (c === "typed") { typedInsChars += len; if (o.atEnd) linearTyped += len; if (dt >= 2000 && dt < 300000) revPauses++; }
+        insertedBy[c] += len;
+        cls[i] = c;
+        o.cls = c;
+        prevT[o.u] = o.t;
+      }
+      if (i % sampleEvery === 0 || i === ops.length - 1) samples.push([o.t, chars.length]);
+    }
+    var finalText = chars.join("");
+    var cleanText = cleanDocText(finalText).trim();
+    var wordCount = wordsIn(cleanText);
+    // words-over-time from chars ratio (cheap) scaled to final words
+    var cpw = chars.length && wordCount ? chars.length / wordCount : 5.7;
+    var wordsOverTime = samples.map(function (s) { return [s[0], Math.round(s[1] / cpw)]; });
+
+    // final composition
+    var finalBy = { typed: 0, paste: 0, untracked: 0, other: 0 };
+    for (var f = 0; f < meta.length; f++) { var cc = cls[meta[f]]; if (finalBy[cc] !== undefined && !/\s/.test(chars[f])) finalBy[cc]++; }
+    var finalTotal = finalBy.typed + finalBy.paste + finalBy.untracked + finalBy.other;
+    function pct(x) { return finalTotal ? round(x / finalTotal * 100, 1) : 0; }
+    var composition = { typed: pct(finalBy.typed), paste: pct(finalBy.paste), untracked: pct(finalBy.untracked), other: pct(finalBy.other) };
+    if (!hasRev && hasEv) {
+      var pasted = ev.pastes.reduce(function (s, p) { return s + (p.len || 0); }, 0);
+      var tot = keyStats.charKeys + pasted;
+      composition = { typed: tot ? round(keyStats.charKeys / tot * 100, 1) : 0, paste: tot ? round(pasted / tot * 100, 1) : 0, untracked: 0, other: 0, estimated: true };
+    }
+
+    // sessions & active time from revisions
+    var sessions = [], activeMs = 0, cur = null, lastT = null;
+    ops.forEach(function (o) {
+      if (o.u !== primary) return;
+      if (lastT !== null && o.t - lastT < S.idleMs) activeMs += o.t - lastT;
+      if (!cur || o.t - lastT > S.sessionGapMs) { cur = { start: o.t, end: o.t, added: 0, removed: 0 }; sessions.push(cur); }
+      cur.end = o.t;
+      if (o.type === "ins") cur.added += o.text.length; else cur.removed += o.delLen || 0;
+      lastT = o.t;
+    });
+    if (!hasRev && hasEv) activeMs = keyStats.activeMs;
+
+    // impossible speed: max typed chars in any 10-min window
+    var typedOps = ops.filter(function (o) { return o.cls === "typed"; });
+    var maxWin = 0, wa = 0, sumWin = 0;
+    for (var wb = 0; wb < typedOps.length; wb++) {
+      sumWin += typedOps[wb].text.length;
+      while (typedOps[wb].t - typedOps[wa].t > 600000) { sumWin -= typedOps[wa].text.length; wa++; }
+      maxWin = Math.max(maxWin, sumWin);
+    }
+    var peak10Wpm = round(maxWin / 5 / 10, 1);
+    var revWpm = activeMs ? round(typedInsChars / 5 / (activeMs / 60000), 1) : 0;
+    var editRatioRev = (insertedBy.typed + insertedBy.paste + insertedBy.untracked) ? round(deletedChars / (insertedBy.typed + insertedBy.paste + insertedBy.untracked) * 100, 1) : 0;
+    var linearPct = typedInsChars ? round(linearTyped / typedInsChars * 100, 1) : 0;
+
+    // ---- keystroke-to-character match: do the typed chars have enough keys behind them?
+    var keyCoverage = null;
+    if (hasEv && typedInsChars > 300) {
+      var contentKeys = keyStats.charKeys + keyStats.editKeys; // letters typed + corrections
+      keyCoverage = round(contentKeys / typedInsChars, 2); // ~1.0+ for real typing, near 0 for pasted-then-labelled
+    }
+
+    // ---- paragraph timing: when each paragraph of the final doc was finished
+    var paragraphs = [];
+    (function () {
+      if (!ops.length) return;
+      var text = finalText, blocks = [], re = /[^\u0000-\u0008\u000B-\u001F\n]+/g, m;
+      var cleaned = text.replace(/[\u0000-\u0008\u000B-\u001F]/g, "\n");
+      var idx = 0, parts = cleaned.split(/\n+/);
+      parts.forEach(function (ptext) {
+        var trimmed = ptext.trim();
+        var startChar = cleaned.indexOf(ptext, idx); idx = startChar + ptext.length;
+        if (wordsIn(trimmed) < 4) return;
+        blocks.push({ text: trimmed, start: startChar, end: startChar + ptext.length });
+      });
+      // map each final char position to the op that last wrote it
+      blocks.slice(0, 80).forEach(function (bl) {
+        var firstT = Infinity, lastT = 0, cls = {}, ins = 0;
+        for (var i = bl.start; i < bl.end && i < meta.length; i++) {
+          var oi = meta[i]; if (oi == null) continue;
+          var o = ops[oi]; if (!o) continue;
+          var c = cls2(oi); cls[c] = (cls[c] || 0) + 1;
+          if (o.t < firstT) firstT = o.t; if (o.t > lastT) lastT = o.t;
+        }
+        function cls2(oi) { return (ops[oi] && ops[oi].cls) || "typed"; }
+        var dom = "typed", best2 = -1; Object.keys(cls).forEach(function (k) { if (cls[k] > best2) { best2 = cls[k]; dom = k; } });
+        var words = wordsIn(bl.text);
+        var spanSec = firstT < Infinity ? round((lastT - firstT) / 1000, 0) : 0;
+        var wpmP = spanSec > 2 ? round(words / (spanSec / 60), 0) : null;
+        paragraphs.push({ words: words, cls: dom, firstT: firstT < Infinity ? firstT : null, lastT: lastT || null, spanSec: spanSec, wpm: wpmP, preview: bl.text.slice(0, 80), full: bl.text.slice(0, 400) });
+      });
+    })();
+    // flag paragraphs that appeared implausibly fast as "typed"
+    var fastParas = paragraphs.filter(function (p) { return p.cls === "typed" && p.words >= 25 && p.wpm && p.wpm > S.impossibleWpm && p.spanSec < 30; });
+
+    // ---- slow-paste: several medium pastes in a row (text fed in piece by piece)
+    var mediumPastes = ops.filter(function (o) { return o.type === "ins" && (o.cls === "paste" || o.cls === "untracked") && o.text.length >= 40 && o.text.length < S.largePasteChars; })
+      .sort(function (a, b) { return a.t - b.t; });
+    var slowPasteRuns = [], run = [];
+    for (var sp = 0; sp < mediumPastes.length; sp++) {
+      var prev = run[run.length - 1];
+      if (prev && mediumPastes[sp].t - prev.t <= 180000) run.push(mediumPastes[sp]);
+      else { if (run.length >= 4) slowPasteRuns.push(run.slice()); run = [mediumPastes[sp]]; }
+    }
+    if (run.length >= 4) slowPasteRuns.push(run.slice());
+    var slowPasteChars = 0; slowPasteRuns.forEach(function (r) { r.forEach(function (o) { slowPasteChars += o.text.length; }); });
+
+    // ---- flags: large pastes
+    var bigInserts = ops.filter(function (o) { return o.type === "ins" && (o.cls === "paste" || o.cls === "untracked") && o.text.length >= S.largePasteChars; });
+    bigInserts.forEach(function (o) {
+      var p = o.paste !== undefined ? ev.pastes[o.paste] : null;
+      var src = p && p.source && p.source.domain ? " from " + p.source.domain : "";
+      if (o.cls === "paste") flag("large_paste", o.text.length > 1000 ? "high" : "medium", "Pasted " + wordsIn(o.text) + " words" + src, "This text was pasted into the doc, not typed.", o.t, wordsIn(o.text), o.text);
+      else flag("untracked", "high", wordsIn(o.text) + " words appeared that the extension never saw typed or pasted", "Likely written with the extension off or on another device.", o.t, wordsIn(o.text), o.text);
+    });
+    if (hasEv && composition.untracked >= 5) flag("untracked_total", composition.untracked > 25 ? "high" : "medium", composition.untracked + "% of the final text is untracked", "Written while the extension was off, on another device or browser, or inserted by a tool.");
+    if (!hasEv && hasRev && composition.paste >= 15) flag("paste_total", composition.paste > 40 ? "high" : "medium", composition.paste + "% of the final text arrived in large chunks", "Without the writer's evidence file this is based on the Docs history only.");
+    // other editors
+    var otherUsers = Object.keys(charsByUser).filter(function (u) { return u !== primary; });
+    otherUsers.forEach(function (u) {
+      var share = round(charsByUser[u] / (best || 1) * 100, 1);
+      if (charsByUser[u] >= 50) flag("other_editor", share > 10 ? "medium" : "low", "Edits by another account: " + (users[u] || "user " + u), charsByUser[u] + " characters inserted (" + share + "% of the main writer's total).");
+    });
+
+    // auto-typer
+    var scripted = keyStats.untrusted;
+    if (scripted > 20) flag("scripted_keys", "high", scripted + " key presses were sent by a script, not a keyboard", "Auto-typer tools generate keys like this.");
+    if (keyStats.intervals >= 300 && keyStats.cv > 0 && keyStats.cv < 0.25) flag("even_rhythm", "high", "Typing rhythm is too even for a human (variation " + keyStats.cv + ")", "Humans usually show variation above 0.4. Auto-typers or retyping from another screen look like this.");
+    if (keyStats.charKeys > 1500 && keyStats.editRatio < 1.5) flag("no_edits", "medium", "Almost no corrections while typing (" + keyStats.editRatio + " backspaces per 100 keys)", "Real drafting usually shows 5 to 15. Retyped text shows very few.");
+    if (keyStats.charKeys > 1500 && keyStats.thinkingPer100Words < 0.4) flag("no_pauses", "medium", "Very few thinking pauses at sentence starts", "Steady typing without pauses can mean the writer was copying from another screen.");
+    if (hasRev && typedInsChars > 3000 && linearPct > 97) flag("linear", "low", "Written strictly top to bottom (" + linearPct + "%)", "Human drafts usually jump around to fix earlier parts.");
+    if (Math.max(peak10Wpm, keyStats.peakWpm) > S.impossibleWpm) flag("speed", "high", "Typing speed hit " + Math.max(peak10Wpm, keyStats.peakWpm) + " WPM over a sustained period", "Above " + S.impossibleWpm + " WPM for minutes at a time is very rare for researched writing.");
+    if (keyCoverage !== null && keyCoverage < 0.5 && typedInsChars > 500) flag("low_keys", keyCoverage < 0.25 ? "high" : "medium", Math.round(keyStats.charKeys + keyStats.editKeys) + " keys for " + typedInsChars + " characters of typed text (" + Math.round(keyCoverage * 100) + "% match)", "Real typing needs about one key per character. A big gap means the text came in another way while the extension logged it as typed.");
+    fastParas.forEach(function (p) { flag("fast_paragraph", "medium", "A " + p.words + "-word paragraph appeared in " + p.spanSec + " seconds (" + p.wpm + " WPM)", "This paragraph appeared too fast to be typed by hand.", p.firstT, p.words, p.full || p.preview); });
+    slowPasteRuns.forEach(function (r) { flag("slow_paste", r.length >= 8 || slowPasteChars > 1500 ? "high" : "medium", r.length + " medium pastes in a row (" + r.reduce(function (a, o) { return a + wordsIn(o.text); }, 0) + " words)", "Text fed in piece by piece can be an attempt to make pasting look like typing.", r[0].t, 0, r.map(function (o) { return o.text; }).join(" ")); });
+
+    // focus & return bursts
+    var away = [], awayStart = null, awayMs = 0, tabSwitches = 0;
+    ev.focus.forEach(function (fe) {
+      if ((fe.ev === "blur" || fe.ev === "hidden") && awayStart === null) { awayStart = fe.t; tabSwitches++; }
+      else if ((fe.ev === "focus" || fe.ev === "visible") && awayStart !== null) { away.push([awayStart, fe.t]); awayMs += fe.t - awayStart; awayStart = null; }
+    });
+    var returnBursts = [];
+    away.forEach(function (a) {
+      if (a[1] - a[0] < 30000) return;
+      var back = a[1] - offset, added = 0, burstText = "";
+      ops.forEach(function (o) { if (o.type === "ins" && o.u === primary && o.t >= back && o.t <= back + 90000) { added += o.text.length; burstText += o.text; } });
+      if (!hasRev) ev.pastes.forEach(function (p) { if (p.t >= a[1] && p.t <= a[1] + 90000) { added += p.len; burstText += " " + (p.text || ""); } });
+      if (added > 150) { returnBursts.push({ away: a, chars: added }); flag("return_burst", added > 600 ? "high" : "medium", "Left the doc for " + Math.round((a[1] - a[0]) / 60000 * 10) / 10 + " min, then " + Math.round(added / 5.7) + " words appeared within 90 seconds of returning", "These words appeared right after returning to the doc.", a[1], Math.round(added / 5.7), burstText); }
+    });
+
+    // sources
+    var aiPastes = 0, aiBefore = 0;
+    ev.pastes.forEach(function (p) {
+      if (p.source && p.source.internal) return;
+      if (p.source && domainMatches(p.source.domain, S.aiDomains)) { aiPastes++; flag("ai_paste", "high", "Pasted " + (p.len || 0) + " characters copied from " + p.source.domain, "Copied straight from an AI site into the doc.", p.t, wordsIn(p.text || ""), p.text || ""); return; }
+      if ((p.len || 0) < 40) return;
+      var v = ev.aiVisits.filter(function (vv) { return domainMatches(vv.domain, S.aiDomains) && vv.end >= p.t - 900000 && vv.start <= p.t + 30000; });
+      if (v.length) { aiBefore++; var last = v[v.length - 1]; flag("ai_before_paste", "high", "Visited " + last.domain + " (" + Math.max(1, Math.round((last.end - last.start) / 60000)) + " min), then pasted " + (p.len || 0) + " characters", "Pasted soon after visiting an AI site.", p.t, wordsIn(p.text || ""), p.text || ""); }
+    });
+    var aiVisitMs = {};
+    ev.aiVisits.forEach(function (v) { aiVisitMs[v.domain] = (aiVisitMs[v.domain] || 0) + Math.max(0, v.end - v.start); });
+
+    // tracking gaps: primary edits with no heartbeat within 3 min
+    var gaps = 0;
+    if (hasEv && hasRev && ev.heartbeats.length) {
+      var hb = ev.heartbeats;
+      var gapOps = 0, lastGapFlagT = 0;
+      ops.forEach(function (o) {
+        if (o.u !== primary || o.type !== "ins") return;
+        var te = o.t + offset;
+        var j = lowerBound(hb, te - 180000, function (x) { return x; });
+        if (!(j < hb.length && hb[j] <= te + 180000)) {
+          gapOps++;
+          if (te - lastGapFlagT > 1800000) { gaps++; lastGapFlagT = te; }
+        }
+      });
+      if (gaps) flag("tracking_gap", gaps > 2 ? "high" : "medium", gaps + " writing period(s) with the extension not running", "Edits happened while no heartbeat was received from the extension.");
+    }
+    if (ev.ext.length) ev.ext.forEach(function (x) { if (x.ev === "installed" || x.ev === "updated") return; if (x.ev === "disabled") flag("ext_off", "medium", "Tracking was paused or turned off", "", x.t); });
+
+    // competitor similarity
+    var competitors = [];
+    if (rev && Array.isArray(rev.competitors)) {
+      rev.competitors.forEach(function (cpt) {
+        if (!cpt || !cpt.text) { competitors.push({ url: cpt && cpt.url, title: cpt && cpt.title, error: (cpt && cpt.error) || "No text", containment: 0, matches: [] }); return; }
+        var sim = E.similarity(cleanText, cpt.text, 6);
+        var matches = E.sentenceMatches(cleanText, cpt.text);
+        var closeMatches = matches.filter(function (m) { return m.sim >= 50; }).length;
+        competitors.push({ url: cpt.url, title: cpt.title || cpt.url, containment: sim.containment, matchedWords: sim.matchedWords, matches: matches, closeMatches: closeMatches });
+        if (sim.containment >= 8 || closeMatches >= 2) {
+          var top = matches[0];
+          flag("competitor", (sim.containment > 25 || closeMatches >= 4) ? "high" : "medium", (closeMatches || matches.length) + " sentence(s) closely match " + (cpt.title || cpt.url) + (sim.containment ? " (" + sim.containment + "% overall)" : ""), "Your sentence and the competitor's are shown side by side in the Text and competitors tab.", null, 0, top ? "Your text: " + top.doc + "\nCompetitor: " + top.comp : "");
+        }
+      });
+    }
+
+    // text patterns
+    var textForPatterns = cleanText || ev.pastes.map(function (p) { return p.text || ""; }).join("\n");
+    var tp = E.textPatterns(textForPatterns);
+    if (tp.words > 200 && tp.aiScore >= 55) flag("ai_patterns", tp.aiScore >= 70 ? "medium" : "low", "Text has common AI writing patterns (pattern score " + tp.aiScore + "/100)", tp.topPhrases.slice(0, 4).map(function (x) { return "\"" + x[0] + "\" x" + x[1]; }).join(", "));
+
+    // style & baseline
+    var style = cleanText ? E.styleVector(cleanText) : null;
+    var styleSim = null;
+    if (style && ctx.styleVector && ctx.styleVector.v && style.words > 200) styleSim = E.cosine(style.v, ctx.styleVector.v);
+    var base = ctx.baseline || null, baseCmp = null;
+    if (base && keyStats.charKeys > 300) {
+      baseCmp = {
+        speedRatio: base.wpm ? round(keyStats.wpm / base.wpm, 2) : null,
+        editRatio: base.editRatio ? round(keyStats.editRatio / base.editRatio, 2) : null,
+        cvDiff: round(keyStats.cv - (base.cv || 0), 2)
+      };
+      if (baseCmp.speedRatio && baseCmp.speedRatio > 1.5) flag("baseline_speed", "medium", "Typing " + baseCmp.speedRatio + "x faster than this writer's own test", "Test: " + base.wpm + " WPM. This doc: " + keyStats.wpm + " WPM.");
+    }
+    if (styleSim !== null && styleSim < 0.85) flag("style_shift", styleSim < 0.75 ? "medium" : "low", "Writing style differs from this writer's approved work (match " + Math.round(styleSim * 100) + "%)", "");
+
+    /* ---------- Human Score ---------- */
+    var G = {};
+    function group(name, score, available, items) { G[name] = { score: Math.round(clamp(score, 0, 100)), available: available, items: items }; }
+    // origin
+    var originScore = composition.typed;
+    group("origin", originScore, hasRev || hasEv, [
+      ["Typed", composition.typed + "%"], ["Pasted", composition.paste + "%"],
+      hasEv ? ["Untracked", composition.untracked + "%"] : ["Untracked", "needs writer evidence"],
+      ["Other accounts", composition.other + "%"]]);
+    // behaviour
+    var bh = 50, bItems = [];
+    var er = hasEv && keyStats.charKeys > 300 ? keyStats.editRatio : editRatioRev;
+    if (er >= 8) { bh += 20; } else if (er >= 4) { bh += 10; } else if (er < 2) { bh -= 25; }
+    bItems.push(["Corrections", er + (hasEv && keyStats.charKeys > 300 ? " / 100 keys" : "% deleted")]);
+    var tpw = hasEv && keyStats.charKeys > 300 ? keyStats.thinkingPer100Words : (typedInsChars > 500 ? round(revPauses / (typedInsChars / 5) * 100, 2) : 0);
+    if (tpw >= 2) bh += 15; else if (tpw < 0.5) bh -= 15;
+    bItems.push(["Thinking pauses", tpw + " / 100 words"]);
+    if (hasRev && typedInsChars > 1000) { if (linearPct < 85) bh += 15; else if (linearPct > 97) bh -= 15; bItems.push(["Top to bottom", linearPct + "%"]); }
+    if (keyCoverage !== null) { if (keyCoverage < 0.25) bh -= 40; else if (keyCoverage < 0.5) bh -= 25; else if (keyCoverage >= 0.85) bh += 10; bItems.push(["Keys per character", keyCoverage]); }
+    group("behaviour", bh, (hasEv && keyStats.charKeys > 300) || (hasRev && typedInsChars > 500), bItems);
+    // integrity
+    var ig = 100, iItems = [];
+    if (scripted > 20) ig -= 50;
+    if (keyStats.intervals >= 300 && keyStats.cv > 0 && keyStats.cv < 0.25) ig -= 35;
+    ig -= Math.min(30, gaps * 10);
+    ig -= Math.min(30, returnBursts.length * 10);
+    ig -= Math.min(25, slowPasteRuns.length * 15);
+    ig -= Math.min(20, fastParas.length * 7);
+    if (composition.other > 5) ig -= 15;
+    if (Math.max(peak10Wpm, keyStats.peakWpm) > S.impossibleWpm) ig -= 20;
+    iItems.push(["Script-sent keys", String(scripted)], ["Rhythm variation", keyStats.cv ? String(keyStats.cv) : "n/a"], ["Tracking gaps", String(gaps)], ["Return bursts", String(returnBursts.length)], ["Slow-paste runs", String(slowPasteRuns.length)], ["Too-fast paragraphs", String(fastParas.length)]);
+    group("integrity", ig, hasEv || hasRev, iItems);
+    // source
+    var sc = 100 - aiPastes * 35 - aiBefore * 20;
+    group("source", sc, hasEv, [["Pastes from AI sites", String(aiPastes)], ["Pastes after AI visit", String(aiBefore)], ["AI sites visited", Object.keys(aiVisitMs).length ? Object.keys(aiVisitMs).join(", ") : "none"]]);
+    // baseline
+    var bs = 100, bsItems = [], bsAvail = false;
+    if (baseCmp) {
+      bsAvail = true;
+      if (baseCmp.speedRatio > 1.6) bs -= 40; else if (baseCmp.speedRatio > 1.3) bs -= 20;
+      if (baseCmp.editRatio !== null && baseCmp.editRatio < 0.3) bs -= 25;
+      if (Math.abs(baseCmp.cvDiff) > 0.3) bs -= 15;
+      bsItems.push(["Speed vs own test", baseCmp.speedRatio + "x"], ["Corrections vs own test", baseCmp.editRatio + "x"]);
+    }
+    if (styleSim !== null) { bsAvail = true; if (styleSim < 0.75) bs -= 35; else if (styleSim < 0.85) bs -= 15; bsItems.push(["Style match with approved work", Math.round(styleSim * 100) + "%"]); }
+    group("baseline", bs, bsAvail, bsItems);
+    // text
+    group("text", 100 - tp.aiScore, tp.words > 150, [["AI pattern score", tp.aiScore + "/100"], ["Sentence variation", String(tp.sentenceCV)], ["Common AI phrases", String(tp.phraseHits)]]);
+
+    var wsum = 0, ssum = 0;
+    Object.keys(G).forEach(function (k) { if (G[k].available) { var w = S.weights[k] || 0; wsum += w; ssum += w * G[k].score; } });
+    var score = wsum ? ssum / wsum : 0;
+    var nonHuman = composition.paste + composition.untracked;
+    var capNote = null, reasonsCap = null;
+    if (nonHuman > 60) { if (score > 35) capNote = "Capped because most of the text was pasted or untracked"; score = Math.min(score, 35); }
+    else if (nonHuman > 35) { if (score > 60) capNote = "Capped because over a third of the text was pasted or untracked"; score = Math.min(score, 60); }
+    if (aiPastes > 0) score = Math.min(score, 40);
+    if (scripted > 20) { if (score > 40) reasonsCap = "Capped because keys were sent by a script"; score = Math.min(score, 40); }
+    if (keyStats.intervals >= 300 && keyStats.cv > 0 && keyStats.cv < 0.25) score = Math.min(score, 50);
+    score = Math.round(score);
+    var verdict = score >= 70 ? "Likely human" : score >= 45 ? "Needs review" : "Likely AI or copied";
+    var decisive = nonHuman > 50 || aiPastes > 0 || scripted > 20;
+    var confidence = hasEv && hasRev && ((keyStats.charKeys > 500 && ops.length > 200) || (decisive && ops.length > 10)) ? "high"
+      : (hasEv && hasRev) || (hasRev && ops.length > 50) || (hasEv && keyStats.charKeys > 500) || decisive ? "medium" : "low";
+
+    // reasons
+    var reasons = [];
+    var sevRank = { high: 3, medium: 2, low: 1 };
+    var byKind = {}, kindOrder = [];
+    flags.forEach(function (fl) { if (!byKind[fl.kind]) { byKind[fl.kind] = { n: 0, words: 0, sev: fl.severity, first: fl }; kindOrder.push(fl.kind); } var g = byKind[fl.kind]; g.n++; g.words += fl.words || 0; if (sevRank[fl.severity] > sevRank[g.sev]) g.sev = fl.severity; });
+    var GROUP_TEXT = {
+      large_paste: function (g) { return g.n + " large pastes (" + g.words + " words in total)"; },
+      untracked: function (g) { return g.n + " chunks of text the extension never saw typed or pasted (" + g.words + " words)"; },
+      ai_before_paste: function (g) { return g.n + " pastes right after visiting an AI site"; },
+      ai_paste: function (g) { return g.n + " pastes copied directly from AI sites"; },
+      return_burst: function (g) { return g.n + " times text appeared right after returning to the doc"; },
+      other_editor: function (g) { return g.n + " other accounts edited the doc"; },
+      slow_paste: function (g) { return g.n + " runs of medium pastes fed in piece by piece"; },
+      fast_paragraph: function (g) { return g.n + " paragraphs appeared far too fast to be typed"; }
+    };
+    kindOrder.sort(function (a, b) { return sevRank[byKind[b].sev] - sevRank[byKind[a].sev]; }).slice(0, 5).forEach(function (k) {
+      var g = byKind[k];
+      reasons.push({ good: false, text: g.n > 1 && GROUP_TEXT[k] ? GROUP_TEXT[k](g) : g.first.title + (g.n > 1 ? " (" + g.n + " times)" : "") });
+    });
+    if (capNote) reasons.unshift({ good: false, text: capNote });
+    if (reasonsCap) reasons.unshift({ good: false, text: reasonsCap });
+    if (composition.typed >= 85) reasons.push({ good: true, text: composition.typed + "% of the text was typed" + (hasEv ? " and confirmed by keystrokes" : "") });
+    if (er >= 5) reasons.push({ good: true, text: "Normal amount of corrections while writing" });
+    if (tpw >= 2) reasons.push({ good: true, text: "Natural thinking pauses before sentences" });
+    if (hasRev && typedInsChars > 1000 && linearPct < 85) reasons.push({ good: true, text: "Writer moved around the doc to revise earlier parts" });
+    if (keyStats.cv >= 0.4) reasons.push({ good: true, text: "Typing rhythm varies like a human's" });
+    if (keyCoverage !== null && keyCoverage >= 0.85) reasons.push({ good: true, text: "Enough keystrokes to back up the typed text" });
+    if (!hasEv) reasons.push({ good: null, text: "No writer evidence file yet, so keystrokes, sources and untracked text are not checked" });
+    if (!hasRev) reasons.push({ good: null, text: "No Docs history file yet, so the final text was not reconstructed" });
+
+    return {
+      engine: E.VERSION,
+      analyzedAt: Date.now(),
+      hasRevisions: hasRev, hasEvidence: hasEv,
+      score: score, verdict: verdict, confidence: confidence,
+      groups: G, reasons: reasons, flags: flags,
+      composition: composition,
+      stats: {
+        words: wordCount || tp.words, chars: chars.length, ops: ops.length, deletedChars: deletedChars,
+        activeMin: round(activeMs / 60000, 1), sessions: sessions.length || ev.sessions.length,
+        wpm: hasEv && keyStats.charKeys > 300 ? keyStats.wpm : revWpm, peakWpm: Math.max(peak10Wpm, keyStats.peakWpm),
+        editRatio: er, thinkingPer100: tpw, linearPct: linearPct, tabSwitches: tabSwitches, awayMin: round(awayMs / 60000, 1),
+        pastes: ev.pastes.length, screenshots: ev.screenshots.length, offsetSec: round(offset / 1000, 1),
+        keyCoverage: keyCoverage, typedChars: typedInsChars, contentKeys: hasEv ? keyStats.charKeys + keyStats.editKeys : null,
+        slowPasteRuns: slowPasteRuns.length, fastParagraphs: fastParas.length,
+        firstT: ops.length ? ops[0].t : keyStats.firstT, lastT: ops.length ? ops[ops.length - 1].t : keyStats.lastT
+      },
+      keyStats: keyStats,
+      sessions: sessions.slice(0, 60),
+      paragraphs: paragraphs,
+      wordsOverTime: wordsOverTime,
+      text: tp,
+      style: style,
+      styleSim: styleSim === null ? null : round(styleSim, 3),
+      baselineCmp: baseCmp,
+      competitors: competitors,
+      aiVisitMs: aiVisitMs,
+      primaryUser: primary, primaryName: users[primary] || null, users: users,
+      declaration: ev.declaration, writer: ev.writer, consent: ev.consent,
+      _ops: ops, _chars: chars, _meta: meta, _cls: cls, _ev: ev, _text: cleanText
+    };
+  };
+
+  /** Small, db-safe summary of an analysis */
+  E.summarize = function (a) {
+    var out = {};
+    Object.keys(a).forEach(function (k) { if (k[0] !== "_") out[k] = a[k]; });
+    out.flags = (a.flags || []).slice(0, 80).map(function (f) { return f.snippet && f.snippet.length > 300 ? Object.assign({}, f, { snippet: f.snippet.slice(0, 300) + "..." }) : f; });
+    if (out.wordsOverTime && out.wordsOverTime.length > 300) out.wordsOverTime = out.wordsOverTime.filter(function (_, i) { return i % 2 === 0; });
+    if (out.keyStats && out.keyStats.perMinute && out.keyStats.perMinute.length > 400) out.keyStats = Object.assign({}, out.keyStats, { perMinute: out.keyStats.perMinute.slice(-400) });
+    if (out.paragraphs && out.paragraphs.length > 60) out.paragraphs = out.paragraphs.slice(0, 60);
+    out.style = a.style ? { v: a.style.v, words: a.style.words } : null;
+    return out;
+  };
+
+  /** Heatmap segments of the final doc: [{text, cls, t}] */
+  E.segments = function (a) {
+    var segs = [], chars = a._chars || [], meta = a._meta || [], ops = a._ops || [], cls = a._cls || [];
+    var cur = null;
+    for (var i = 0; i < chars.length; i++) {
+      var oi = meta[i], c = cls[oi] || "typed", t = ops[oi] ? ops[oi].t : 0;
+      var ch = chars[i];
+      if (/[\u0000-\u0008\u000B-\u001F]/.test(ch)) ch = "\n";
+      if (cur && cur.cls === c && (cur.opi === oi || c === "typed")) { cur.text += ch; }
+      else { cur = { text: ch, cls: c, t: t, opi: oi }; segs.push(cur); }
+    }
+    return segs;
+  };
+
+  /** Baseline from a typing test file */
+  E.baselineFromTest = function (test) {
+    var ks = E.keyStats(test.keys || []);
+    return { wpm: ks.wpm, cv: ks.cv, editRatio: ks.editRatio, thinkingPer100: ks.thinkingPer100Words, meanInterval: ks.meanInterval, keys: ks.total, at: test.at || Date.now(), durationMs: test.durationMs || 0 };
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = E;
+  else root.ATEngine = E;
+})(typeof window !== "undefined" ? window : this);
+</script>
+<script>(function () {
+  "use strict";
+  var E = window.ATEngine;
+  var sb = supabase.createClient(window.AT_CONFIG.url, window.AT_CONFIG.anonKey);
+  var app = document.getElementById("app");
+  var S = { user: null, org: null, role: null, members: [], docs: [], tab: "docs", view: { page: "list" }, busy: false };
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function toast(m,bad){var e=document.createElement("div");e.className="toast";e.style.background=bad?"var(--bad)":"var(--ink)";e.textContent=m;document.body.appendChild(e);setTimeout(function(){e.remove();},3800);}
+  function docIdFromUrl(u){var m=String(u||"").match(/document\/(?:u\/\d+\/)?d\/([a-zA-Z0-9_-]{20,})/);return m?m[1]:(/^[a-zA-Z0-9_-]{20,}$/.test(u.trim())?u.trim():null);}
+  function scoreColor(s){return s>=70?"var(--ok)":s>=45?"var(--warn)":"var(--bad)";}
+  function vClass(v){return v==="Likely human"?"v-good":v==="Needs review"?"v-mid":v?"v-bad":"v-none";}
+  function fmtMin(m){m=Math.round(m||0);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min";}
+
+  /* ---------- boot ---------- */
+  sb.auth.getSession().then(function(r){ S.user = r.data.session && r.data.session.user; S.user ? loadWorkspace() : renderAuth(); });
+  sb.auth.onAuthStateChange(function(_e, session){ var u = session && session.user; if ((u&&u.id)!==(S.user&&S.user.id)){ S.user=u; u?loadWorkspace():renderAuth(); } });
+
+  /* ---------- auth ---------- */
+  function renderAuth(err){
+    app.innerHTML =
+      '<div class="auth"><h1>AuthorTrace</h1><p class="muted">Sign in to your agency workspace.</p>'+
+      '<div class="card"><label>Email<input type="email" id="email" autocomplete="email"></label>'+
+      '<label>Password<input type="password" id="password" autocomplete="current-password"></label>'+
+      (err?'<p class="err small">'+esc(err)+'</p>':'')+
+      '<div class="row"><button class="btn primary" id="signin">Sign in</button><button class="btn" id="signup">Create account</button></div>'+
+      '<p class="small muted">New here? Enter an email and password, then click Create account.</p></div></div>';
+    document.getElementById("signin").onclick=function(){auth("in");};
+    document.getElementById("signup").onclick=function(){auth("up");};
+    app.querySelectorAll("input").forEach(function(i){i.addEventListener("keydown",function(e){if(e.key==="Enter")auth("in");});});
+  }
+  function auth(mode){
+    var email=document.getElementById("email").value.trim(), pw=document.getElementById("password").value;
+    if(!email||!pw)return renderAuth("Enter an email and password.");
+    var p = mode==="up" ? sb.auth.signUp({email:email,password:pw}) : sb.auth.signInWithPassword({email:email,password:pw});
+    p.then(function(r){
+      if(r.error)return renderAuth(r.error.message);
+      if(mode==="up" && !r.data.session) return renderAuth("Account made. Check your email to confirm, or turn off 'Confirm email' in Supabase, then sign in.");
+      // onAuthStateChange will load workspace
+    });
+  }
+
+  /* ---------- workspace ---------- */
+  function loadWorkspace(){
+    app.innerHTML='<div class="wrap"><p class="muted">Loading your workspace...</p></div>';
+    sb.from("orgs").select("*").then(function(r){
+      if(r.error)return fail(r.error);
+      var owned=(r.data||[]).filter(function(o){return o.owner_id===S.user.id;});
+      if(owned.length){ S.org=owned[0]; S.role="owner"; return afterOrg(); }
+      if((r.data||[]).length){ S.org=r.data[0]; return loadRole().then(afterOrg); }
+      renderCreateOrg();
+    });
+  }
+  function loadRole(){ return sb.from("members").select("role").eq("org_id",S.org.id).eq("user_id",S.user.id).maybeSingle().then(function(r){ S.role=(r.data&&r.data.role)||"reviewer"; }); }
+  function fail(e){ app.innerHTML='<div class="wrap"><div class="card"><h2>Something went wrong</h2><p class="err">'+esc(e.message||e)+'</p><button class="btn" onclick="location.reload()">Reload</button></div></div>'; }
+
+  function renderCreateOrg(){
+    app.innerHTML='<div class="auth"><h1>Create your agency</h1><p class="muted">This is your private workspace. Writers and docs live here.</p>'+
+      '<div class="card"><label>Agency name<input type="text" id="orgname" value="Rank Fest"></label>'+
+      '<div class="row"><button class="btn primary" id="create">Create agency</button><button class="btn ghost" id="out">Sign out</button></div></div></div>';
+    document.getElementById("out").onclick=signOut;
+    document.getElementById("create").onclick=function(){
+      var name=document.getElementById("orgname").value.trim()||"My Agency";
+      sb.from("orgs").insert({name:name,owner_id:S.user.id}).select().single().then(function(r){
+        if(r.error)return toast(r.error.message,true);
+        S.org=r.data; S.role="owner";
+        sb.from("members").insert({org_id:S.org.id,user_id:S.user.id,email:S.user.email,role:"owner",name:"Owner"}).then(function(){ afterOrg(); });
+      });
+    };
+  }
+  function afterOrg(){
+    return Promise.all([
+      sb.from("members").select("*").eq("org_id",S.org.id),
+      sb.from("documents").select("*").eq("org_id",S.org.id).order("created_at",{ascending:false})
+    ]).then(function(res){
+      S.members=res[0].data||[]; S.docs=res[1].data||[];
+      // link my membership if missing
+      var mine=S.members.filter(function(m){return m.user_id===S.user.id;})[0];
+      if(!mine){ sb.from("members").update({user_id:S.user.id}).eq("org_id",S.org.id).eq("email",S.user.email).then(function(){}); }
+      render();
+    });
+  }
+  function signOut(){ sb.auth.signOut().then(function(){ S.org=null; S.user=null; renderAuth(); }); }
+  function writers(){ return S.members.filter(function(m){return m.role==="writer";}); }
+
+  /* ---------- render shell ---------- */
+  function render(){
+    if(S.view.page==="doc") return renderDoc(S.view.id);
+    var tabs=[["docs","Docs"],["writers","Writers"],["settings","Settings"]];
+    app.innerHTML='<div class="wrap">'+
+      '<div class="topbar"><h1 class="grow">AuthorTrace</h1><span class="small muted">'+esc(S.org.name)+' · '+esc(S.user.email)+'</span><button class="btn small ghost" id="out">Sign out</button></div>'+
+      '<div class="tabs">'+tabs.map(function(t){return '<button class="'+(S.tab===t[0]?"on":"")+'" data-tab="'+t[0]+'">'+t[1]+'</button>';}).join("")+'</div>'+
+      '<div id="body"></div></div>';
+    document.getElementById("out").onclick=signOut;
+    app.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){S.tab=b.dataset.tab;render();};});
+    var body=document.getElementById("body");
+    if(S.tab==="docs")body.innerHTML=docsPage(),wireDocs();
+    else if(S.tab==="writers")body.innerHTML=writersPage(),wireWriters();
+    else body.innerHTML=settingsPage(),wireSettings();
+  }
+
+  /* ---------- docs ---------- */
+  function docsPage(){
+    var opts=writers().map(function(w){return '<option value="'+esc(w.email)+'">'+esc(w.name||w.email)+'</option>';}).join("");
+    var form='<div class="card"><h2>Assign a new doc</h2>'+
+      (writers().length?'':'<p class="small err">Add a writer first in the Writers tab.</p>')+
+      '<label>Google Doc link<input type="text" id="d-url" placeholder="https://docs.google.com/document/d/..."></label>'+
+      '<label>Article title<input type="text" id="d-title" placeholder="e.g. Best running shoes 2026"></label>'+
+      '<label>Writer<select id="d-writer">'+opts+'</select></label>'+
+      '<label>Competitor links (optional, one per line)<textarea id="d-comp" placeholder="https://competitor.com/article"></textarea></label>'+
+      '<div class="row"><button class="btn primary" id="d-add"'+(writers().length?"":" disabled")+'>Assign doc</button><span class="small muted" id="d-msg"></span></div></div>';
+    var rows=S.docs.length?S.docs.map(function(d){
+      var r=d._report;
+      return '<tr class="clk" data-doc="'+d.id+'"><td><b>'+esc(d.title||"Untitled")+'</b><br><span class="small muted">'+esc(d.writer_email)+'</span></td>'+
+        '<td>'+(r?'<span class="scorechip" style="color:'+scoreColor(r.score)+'">'+r.score+'</span>':'<span class="muted">-</span>')+'</td>'+
+        '<td>'+(r?'<span class="pill '+vClass(r.verdict)+'">'+esc(r.verdict)+'</span>':'<span class="pill v-none">Not checked</span>')+'</td>'+
+        '<td class="small muted">'+esc(d.status||"review")+'</td></tr>';
+    }).join(""):'<tr><td colspan="4" class="muted">No docs yet.</td></tr>';
+    return form+'<div class="card"><h2>Docs</h2><table><thead><tr><th>Doc</th><th>Score</th><th>Verdict</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  function wireDocs(){
+    var add=document.getElementById("d-add");
+    if(add)add.onclick=function(){
+      var url=document.getElementById("d-url").value.trim(), gid=docIdFromUrl(url);
+      if(!gid)return document.getElementById("d-msg").innerHTML='<span class="err">Not a valid Google Doc link.</span>';
+      var comps=document.getElementById("d-comp").value.split(/\s+/).filter(function(u){return /^https?:\/\//.test(u);}).map(function(u){return {url:u};});
+      var row={org_id:S.org.id,google_doc_id:gid,title:document.getElementById("d-title").value.trim(),writer_email:document.getElementById("d-writer").value,competitors:comps,created_by:S.user.id,status:"review"};
+      add.disabled=true;
+      sb.from("documents").insert(row).select().single().then(function(r){
+        add.disabled=false;
+        if(r.error)return document.getElementById("d-msg").innerHTML='<span class="err">'+esc(r.error.message)+'</span>';
+        S.docs.unshift(r.data); toast("Doc assigned"); render();
+      });
+    };
+    app.querySelectorAll(".clk").forEach(function(tr){tr.style.cursor="pointer";tr.onclick=function(){S.view={page:"doc",id:tr.dataset.doc};render();};});
+  }
+
+  /* ---------- writers ---------- */
+  function writersPage(){
+    var rows=writers().length?writers().map(function(w){
+      return '<tr><td><b>'+esc(w.name||"")+'</b></td><td>'+esc(w.email)+'</td><td class="small">'+(w.user_id?'<span class="ok">Signed in</span>':'<span class="muted">Not joined yet</span>')+'</td><td class="mono">'+(w.baseline?w.baseline.wpm+" wpm":"-")+'</td><td><button class="btn small ghost" data-del="'+w.id+'">Remove</button></td></tr>';
+    }).join(""):'<tr><td colspan="5" class="muted">No writers yet.</td></tr>';
+    return '<div class="card"><h2>Add a writer</h2><p class="small muted">Use the exact Gmail you will share docs with. The writer installs the extension and signs in with the same email.</p>'+
+      '<div class="row"><input type="text" id="w-name" placeholder="Name" style="max-width:200px"><input type="email" id="w-email" placeholder="writer@gmail.com" class="grow"><button class="btn primary" id="w-add">Add</button></div><span class="small muted" id="w-msg"></span></div>'+
+      '<div class="card"><h2>Writers</h2><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Baseline</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+  function wireWriters(){
+    document.getElementById("w-add").onclick=function(){
+      var email=document.getElementById("w-email").value.trim().toLowerCase(), name=document.getElementById("w-name").value.trim();
+      if(!/.+@.+\..+/.test(email))return document.getElementById("w-msg").innerHTML='<span class="err">Enter a valid email.</span>';
+      sb.from("members").insert({org_id:S.org.id,email:email,name:name,role:"writer"}).select().single().then(function(r){
+        if(r.error)return document.getElementById("w-msg").innerHTML='<span class="err">'+esc(r.error.message.indexOf("duplicate")>=0?"That writer is already added.":r.error.message)+'</span>';
+        S.members.push(r.data); toast("Writer added"); render();
+      });
+    };
+    app.querySelectorAll("[data-del]").forEach(function(b){b.onclick=function(){
+      sb.from("members").delete().eq("id",b.dataset.del).then(function(r){ if(r.error)return toast(r.error.message,true); S.members=S.members.filter(function(m){return m.id!==b.dataset.del;}); toast("Writer removed"); render(); });
+    };});
+  }
+
+  /* ---------- settings ---------- */
+  function settingsPage(){
+    return '<div class="card"><h2>Your agency</h2><div class="statrow"><div><span>Name</span><b style="font-size:15px">'+esc(S.org.name)+'</b></div><div><span>Your role</span><b style="font-size:15px">'+esc(S.role)+'</b></div><div><span>Writers</span><b>'+writers().length+'</b></div><div><span>Docs</span><b>'+S.docs.length+'</b></div></div>'+
+      '<p class="small muted">Share the extension with your writers. They sign in with the Gmail you added. Tracking on assigned docs starts after they agree once.</p></div>';
+  }
+  function wireSettings(){}
+
+  /* ---------- doc report ---------- */
+  function renderDoc(id){
+    var d=S.docs.filter(function(x){return x.id===id;})[0];
+    if(!d){S.view={page:"list"};return render();}
+    app.innerHTML='<div class="wrap"><span class="back" id="back">&larr; All docs</span><h1 style="margin-top:6px">'+esc(d.title||"Untitled")+'</h1><p class="muted small">'+esc(d.writer_email)+'</p><div id="rep"><p class="muted">Loading the writing data...</p></div></div>';
+    document.getElementById("back").onclick=function(){S.view={page:"list"};render();};
+    sb.from("events").select("*").eq("doc_id",id).order("created_at",{ascending:true}).then(function(r){
+      if(r.error)return document.getElementById("rep").innerHTML='<p class="err">'+esc(r.error.message)+'</p>';
+      buildReport(d,r.data||[]);
+    });
+  }
+  function buildReport(d,events){
+    var ev={format:"authortrace.evidence",keys:[],pastes:[],copies:[],focus:[],heartbeats:[],aiVisits:[],screenshots:[],declaration:null,consent:null};
+    var rev=null;
+    events.forEach(function(e){
+      var p=e.payload||{};
+      if(e.kind==="batch"){
+        if(p.keys)ev.keys=ev.keys.concat(p.keys);
+        if(p.pastes)ev.pastes=ev.pastes.concat(p.pastes);
+        if(p.copies)ev.copies=ev.copies.concat(p.copies);
+        if(p.focus)ev.focus=ev.focus.concat(p.focus);
+        if(p.hb)ev.heartbeats=ev.heartbeats.concat(p.hb);
+        if(p.aiVisits)ev.aiVisits=ev.aiVisits.concat(p.aiVisits);
+        if(p.shots)ev.screenshots=ev.screenshots.concat(p.shots);
+      } else if(e.kind==="history"){
+        rev={format:"authortrace.revisions",ops:p.ops||[],users:p.users||{},revisions:p.revisions,competitors:p.competitors||(d.competitors||[]),title:d.title,docId:d.google_doc_id};
+      } else if(e.kind==="done"){
+        if(p.declaration)ev.declaration=p.declaration; if(p.consent)ev.consent=p.consent;
+      }
+    });
+    if(!rev && (d.competitors||[]).length) rev={format:"authortrace.revisions",ops:[],users:{},competitors:d.competitors,title:d.title,docId:d.google_doc_id};
+    var writer=S.members.filter(function(m){return (m.email||"").toLowerCase()===(d.writer_email||"").toLowerCase();})[0];
+    if(!ev.keys.length && !ev.pastes.length && !(rev&&rev.ops.length)){
+      document.getElementById("rep").innerHTML='<div class="empty"><h3>No writing data yet</h3><p>Once the writer opens this doc with the extension, the data appears here.</p></div>';
+      return;
+    }
+    var a=E.analyze(rev,[ev],{baseline:writer&&writer.baseline});
+    // save report (best effort)
+    sb.from("reports").upsert({doc_id:d.id,org_id:S.org.id,score:a.score,verdict:a.verdict,summary:{score:a.score,verdict:a.verdict,composition:a.composition}}).then(function(){});
+    d._report={score:a.score,verdict:a.verdict};
+    document.getElementById("rep").innerHTML=reportHtml(a,d);
+  }
+  function reportHtml(a,d){
+    var c=a.composition,st=a.stats;
+    var reasons=(a.reasons||[]).map(function(r){return '<li style="color:'+(r.good===true?"var(--ok)":r.good===null?"var(--muted)":"var(--ink)")+'">'+(r.good===true?"+ ":r.good===null?"i ":"− ")+esc(r.text)+'</li>';}).join("");
+    var flags=(a.flags||[]).slice().sort(function(x,y){var o={high:0,medium:1,low:2};return o[x.severity]-o[y.severity];}).map(function(f){
+      return '<div class="flag '+f.severity+'"><div class="stripe"></div><div><b>'+esc(f.title)+'</b>'+(f.detail?'<div class="small muted">'+esc(f.detail)+'</div>':'')+(f.snippet?'<div class="flagquote">'+esc(f.snippet)+'</div>':'')+'</div></div>';
+    }).join("")||'<p class="muted">No flags.</p>';
+    var comps=(a.competitors||[]).map(function(cp){
+      var rows=(cp.matches||[]).map(function(m){return '<tr><td class="small">'+esc(m.doc)+'</td><td class="small muted">'+esc(m.comp)+'</td><td class="mono">'+m.sim+'%</td></tr>';}).join("");
+      return '<h3 style="margin-top:10px"><a href="'+esc(cp.url)+'" target="_blank" rel="noopener">'+esc(cp.title||cp.url)+'</a> '+(cp.error?'<span class="err small">'+esc(cp.error)+'</span>':'<span class="small muted">'+cp.containment+'% overall</span>')+'</h3>'+(rows?'<table><thead><tr><th>This doc</th><th>Competitor</th><th>Match</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="small muted">No close sentence matches.</p>');
+    }).join("")||'<p class="small muted">No competitors set.</p>';
+    return '<div class="card"><div class="row"><div style="font-size:40px;font-weight:800;color:'+scoreColor(a.score)+'">'+a.score+'</div><div class="grow"><span class="pill '+vClass(a.verdict)+'" style="font-size:15px">'+esc(a.verdict)+'</span> <span class="small muted">'+esc(a.confidence)+' confidence</span><ul class="small" style="margin:8px 0 0;padding-left:2px;list-style:none;display:grid;gap:4px">'+reasons+'</ul></div></div></div>'+
+      '<div class="card"><h2>How it was written</h2><div class="compbar"><span style="width:'+c.typed+'%;background:var(--typed)"></span><span style="width:'+c.paste+'%;background:var(--paste)"></span><span style="width:'+c.untracked+'%;background:var(--untracked)"></span><span style="width:'+c.other+'%;background:var(--other)"></span></div>'+
+      '<div class="small muted">Typed '+c.typed+'% · Pasted '+c.paste+'% · Untracked '+c.untracked+'% · Other '+c.other+'%</div>'+
+      '<div class="statrow"><div><span>Words</span><b>'+st.words+'</b></div><div><span>Active time</span><b>'+fmtMin(st.activeMin)+'</b></div><div><span>Typing speed</span><b>'+st.wpm+' wpm</b></div><div><span>Pastes</span><b>'+st.pastes+'</b></div><div><span>Screenshots</span><b>'+st.screenshots+'</b></div></div></div>'+
+      '<div class="card"><h2>Flags</h2>'+flags+'</div>'+
+      '<div class="card"><h2>Competitor comparison</h2>'+comps+'</div>';
+  }
+})();
+</script>
+</body>
+</html>
