@@ -1368,8 +1368,9 @@ window.AT_CONFIG = {
       return '<h3 style="margin-top:10px"><a href="'+esc(cp.url)+'" target="_blank" rel="noopener">'+esc(cp.title||cp.url)+'</a> '+(cp.error?'<span class="err small">'+esc(cp.error)+'</span>':'<span class="small muted">'+cp.containment+'% overall</span>')+'</h3>'+(rows?'<table><thead><tr><th>This doc</th><th>Competitor</th><th>Match</th></tr></thead><tbody>'+rows+'</tbody></table>':'<p class="small muted">No close sentence matches.</p>');
     }).join("")||'<p class="small muted">No competitors set.</p>';
 
-    return hero+comp+timeline+corr+speed+sessions+docCard+shotsCard+
-      '<div class="card"><h2>Flags</h2>'+flags+'</div>'+
+    var flagCount=(a.flags||[]).length;
+    var flagsCard='<div class="card"><div class="sec-head"><h2>Flags</h2>'+(flagCount?'<span class="hint">'+flagCount+' thing'+(flagCount>1?"s":"")+' worth a look</span>':'<span class="hint">nothing stood out</span>')+'</div>'+flags+'</div>';
+    return hero+comp+flagsCard+timeline+corr+speed+sessions+docCard+shotsCard+
       '<div class="card"><h2>Competitor comparison</h2>'+comps+'</div>';
   }
 
