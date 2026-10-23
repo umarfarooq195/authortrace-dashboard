@@ -1065,7 +1065,7 @@ window.AT_CONFIG = {
   function vClass(v){return v==="Likely human"?"v-good":v==="Needs review"?"v-mid":v?"v-bad":"v-none";}
   function fmtMin(m){m=Math.round(m||0);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min";}
   function relTime(iso){if(!iso)return "not yet";var t=new Date(iso).getTime(),s=Math.round((Date.now()-t)/1000);if(s<60)return s+" sec ago";var m=Math.round(s/60);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" h ago";return new Date(t).toLocaleString();}
-  function syncBanner(hist,any){return '<div class="sync"><span><b>Document text last pulled from Google Docs '+relTime(hist)+'</b></span><span class="small muted">Writing activity '+relTime(any)+'. The data refreshes while the writer keeps the doc open, and right after they leave it. If you just edited, switch away from the doc tab, wait a few seconds, then refresh this page.</span></div>';}
+  function syncBanner(hist,any){return '<div class="sync"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>Document text last pulled from Google Docs '+relTime(hist)+'</b><div class="small muted" style="margin-top:3px">Writing activity '+relTime(any)+'</div></div><button class="btn small primary" id="refetch">Fetch fresh data</button></div><div class="small muted">The writer\'s extension pulls the doc while it is open and when they switch away from it. This button re-reads the latest data the extension has sent. To get the newest edits, the writer should switch to another tab for a few seconds, then click this.</div></div>';}
 
   /* ---------- boot ---------- */
   sb.auth.getSession().then(function(r){ S.user = r.data.session && r.data.session.user; S.user ? loadWorkspace() : renderAuth(); });
@@ -1422,6 +1422,8 @@ window.AT_CONFIG = {
   function lightbox(src){var el=document.createElement("div");el.className="lightbox";var i=new Image();i.src=src;el.appendChild(i);el.onclick=function(){el.remove();};document.body.appendChild(el);}
   function wireReport(a,d,m){
     var atv=document.getElementById("atv");
+    var rf=document.getElementById("refetch");
+    if(rf)rf.onclick=function(){rf.disabled=true;rf.textContent="Fetching...";renderDoc(d.id);};
     app.querySelectorAll(".fl[data-seg]").forEach(function(c){c.onclick=function(){jumpToSeg(c.dataset.seg);};});
     app.querySelectorAll(".fbtn").forEach(function(b){b.onclick=function(){
       app.querySelectorAll(".fbtn").forEach(function(x){x.classList.remove("on");});b.classList.add("on");
