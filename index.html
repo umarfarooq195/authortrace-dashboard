@@ -162,6 +162,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .fl-jump{display:inline-block;margin-top:9px;font-size:12px;font-weight:700;color:var(--accent)}
 .seg-flash{outline:2px solid var(--accent);outline-offset:1px;border-radius:3px;background:var(--accent-soft)!important;animation:segflash 1.1s ease}
 @keyframes segflash{0%{background:var(--accent)}45%{background:var(--accent-soft)}100%{background:var(--accent-soft)}}
+.sync{display:grid;gap:3px;padding:11px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--accent-soft)}
+.sync b{font-size:13.5px}
 </style>
 </head>
 <body>
@@ -1062,6 +1064,8 @@ window.AT_CONFIG = {
   function scoreColor(s){return s>=70?"var(--ok)":s>=45?"var(--warn)":"var(--bad)";}
   function vClass(v){return v==="Likely human"?"v-good":v==="Needs review"?"v-mid":v?"v-bad":"v-none";}
   function fmtMin(m){m=Math.round(m||0);return m<60?m+" min":Math.floor(m/60)+" h "+(m%60)+" min";}
+  function relTime(iso){if(!iso)return "not yet";var t=new Date(iso).getTime(),s=Math.round((Date.now()-t)/1000);if(s<60)return s+" sec ago";var m=Math.round(s/60);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" h ago";return new Date(t).toLocaleString();}
+  function syncBanner(hist,any){return '<div class="sync"><span><b>Document text last pulled from Google Docs '+relTime(hist)+'</b></span><span class="small muted">Writing activity '+relTime(any)+'. The data refreshes while the writer keeps the doc open, and right after they leave it. If you just edited, switch away from the doc tab, wait a few seconds, then refresh this page.</span></div>';}
 
   /* ---------- boot ---------- */
   sb.auth.getSession().then(function(r){ S.user = r.data.session && r.data.session.user; S.user ? loadWorkspace() : renderAuth(); });
@@ -1257,7 +1261,9 @@ window.AT_CONFIG = {
     sb.from("reports").upsert({doc_id:d.id,org_id:S.org.id,score:a.score,verdict:a.verdict,summary:{score:a.score,verdict:a.verdict,composition:a.composition}}).then(function(){});
     d._report={score:a.score,verdict:a.verdict};
     var model=E.reportModel(a);
-    document.getElementById("rep").innerHTML=reportHtml(a,d,model);
+    var lastHist=null,lastAny=null;
+    events.forEach(function(e){lastAny=e.created_at;if(e.kind==="history")lastHist=e.created_at;});
+    document.getElementById("rep").innerHTML=syncBanner(lastHist,lastAny)+reportHtml(a,d,model);
     wireReport(a,d,model);
   }
   /* ---- report helpers ---- */
