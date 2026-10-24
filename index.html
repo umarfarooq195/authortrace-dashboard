@@ -1068,8 +1068,36 @@ window.AT_CONFIG = {
   function syncBanner(hist,any){return '<div class="sync"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><b>Document text last pulled from Google Docs '+relTime(hist)+'</b><div class="small muted" style="margin-top:3px">Writing activity '+relTime(any)+'</div></div><button class="btn small primary" id="refetch">Fetch fresh data</button></div><div class="small muted">The writer\'s extension pulls the doc while it is open and when they switch away from it. This button re-reads the latest data the extension has sent. To get the newest edits, the writer should switch to another tab for a few seconds, then click this.</div></div>';}
 
   /* ---------- boot ---------- */
-  sb.auth.getSession().then(function(r){ S.user = r.data.session && r.data.session.user; S.user ? loadWorkspace() : renderAuth(); });
-  sb.auth.onAuthStateChange(function(_e, session){ var u = session && session.user; if ((u&&u.id)!==(S.user&&S.user.id)){ S.user=u; u?loadWorkspace():renderAuth(); } });
+  var _hash = location.hash || "";
+  if(/error_code=|error=access_denied/.test(_hash)){ renderLinkError(_hash); }
+  else if(/type=recovery/.test(_hash)){ app.innerHTML='<div class="wrap"><p class="muted">Opening password reset...</p></div>'; }
+  else { sb.auth.getSession().then(function(r){ S.user = r.data.session && r.data.session.user; S.user ? loadWorkspace() : renderAuth(); }); }
+  sb.auth.onAuthStateChange(function(_e, session){
+    if(_e==="PASSWORD_RECOVERY"){ S.recovery=true; renderReset(); return; }
+    if(S.recovery) return;
+    var u = session && session.user; if ((u&&u.id)!==(S.user&&S.user.id)){ S.user=u; u?loadWorkspace():renderAuth(); }
+  });
+
+  function renderLinkError(){
+    app.innerHTML='<div class="auth"><h1>Reset link expired</h1><div class="card"><p>That password reset link is no longer valid. Reset links expire quickly.</p><p class="small muted">Ask for a new link to be sent, then open it right away. If this keeps happening, the owner can send a fresh one from the AuthorTrace team.</p><a class="btn" href="'+location.pathname+'">Back to sign in</a></div></div>';
+  }
+  function renderReset(){
+    app.innerHTML='<div class="auth"><h1>Set a new password</h1><p class="muted">Choose a password for this account.</p>'+
+      '<div class="card"><label>New password<input type="password" id="np" autocomplete="new-password"></label>'+
+      '<label>Confirm password<input type="password" id="np2" autocomplete="new-password"></label>'+
+      '<div class="row"><button class="btn primary" id="savepw">Save password</button></div><p class="small" id="rmsg"></p></div></div>';
+    var msg=document.getElementById("rmsg");
+    document.getElementById("savepw").onclick=function(){
+      var p=document.getElementById("np").value, p2=document.getElementById("np2").value;
+      if(p.length<6){msg.innerHTML='<span class="err">Use at least 6 characters.</span>';return;}
+      if(p!==p2){msg.innerHTML='<span class="err">The two passwords do not match.</span>';return;}
+      msg.textContent="Saving...";
+      sb.auth.updateUser({password:p}).then(function(r){
+        if(r.error){msg.innerHTML='<span class="err">'+esc(r.error.message)+'</span>';return;}
+        msg.innerHTML='<span class="ok">Password updated. You can now sign in with this email and the new password, in the extension or here.</span>';
+      });
+    };
+  }
 
   /* ---------- auth ---------- */
   function renderAuth(err){
